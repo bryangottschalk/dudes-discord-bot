@@ -1,6 +1,6 @@
 # Dudes Discord bot
 
-Discord announcer bot that plays user-specific audio clips when members join/leave the designated channel, announcing their presence.
+Discord announcer bot that plays user-specific audio clips when members join/leave the designated server's voice channels, announcing their presence.
 
 Based on https://github.com/walworob/dpr-discobot
 

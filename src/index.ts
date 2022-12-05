@@ -66,24 +66,32 @@ const discordUserAnnouncementDictionary: { [key: string]: string } = {
 
 // Event triggered when a user changes voice state - e.g. joins/leaves a channel, mutes/unmutes, etc.
 client.on('voiceStateUpdate', async (oldState, newState) => {
-  const introsEnabled = true;
   // Only process if the audio player currently is idle
   if (audioPlayer.state.status === AudioPlayerStatus.Idle) {
     // User joins channel.
-    const isChangingStreamingState =
+
+    // The voiceStateUpdate callback is triggered for a variety of reasons, but we only care about some of them for intros.
+    const DONT_INTRO = [
       (oldState.streaming && !newState.streaming) ||
-      (!oldState.streaming && newState.streaming);
-    if (isChangingStreamingState) {
-      // for some reason this voiceStateUpdate callback is triggered when people start/stop steaming. we need to do nothing when this occurs.
-      return;
-    }
-    const isSwitchingChannel = oldState.channel && newState.channel;
+        (!oldState.streaming && newState.streaming),
+      (oldState.selfDeaf && !newState.selfDeaf) ||
+        (!oldState.selfDeaf && newState.selfDeaf),
+      (oldState.selfMute && !newState.selfMute) ||
+        (!oldState.selfMute && newState.selfMute),
+      (oldState.serverDeaf && !newState.serverDeaf) ||
+        (!oldState.serverDeaf && newState.serverDeaf),
+      (oldState.serverMute && !newState.serverMute) ||
+        (!oldState.serverMute && newState.serverMute)
+    ];
+    const isSwitchingChannel = Boolean(oldState.channel && newState.channel);
     const isJoiningChannel =
       oldState.channel === null && newState.channel !== null;
-    if (introsEnabled && (isJoiningChannel || isSwitchingChannel)) {
+    if (
+      DONT_INTRO.every((condition) => condition === false) &&
+      (isJoiningChannel || isSwitchingChannel)
+    ) {
       // Set the channel for the bot to join
-      channel = newState.channel;
-
+      channel = newState.channel as VoiceBasedChannel;
       // Grab the username of the user who joined
       const username = newState?.member?.user.tag as string;
 
@@ -105,7 +113,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
       oldState.channel !== null &&
       newState.channel === null &&
       !oldState?.member?.user.bot &&
-      oldState.channel.members.size !== 0
+      oldState.channel.members.size !== 0 // don't bother playing if no one is still in the channel
     ) {
       // Bot will join the channel the user left
       channel = oldState.channel;
@@ -115,7 +123,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
 });
 
 app.get('/', (req: Request, res: Response): void => {
-  res.send(`Listening for members to join/leave the designated channel...`);
+  res.send(`Listening for Discord events on the server...`);
 });
 
 app.listen(PORT, (): void => {
