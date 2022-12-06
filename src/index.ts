@@ -61,7 +61,8 @@ const discordUserAnnouncementDictionary: { [key: string]: string } = {
   'Snapps#5034': 'SAMMMMM.mp3',
   'bryborg#3434': 'thebryansong.mp3',
   'Dru#7852': 'Dr_Dru_v2.mp3',
-  'lKoNFlicTl#3922': 'This_is_Patrick.mp3'
+  'lKoNFlicTl#3922': 'This_is_Patrick.mp3',
+  'NutDragSwag#0374': 'alexander_the_great.mp3'
 };
 
 // Event triggered when a user changes voice state - e.g. joins/leaves a channel, mutes/unmutes, etc.
