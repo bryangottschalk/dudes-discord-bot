@@ -32,10 +32,8 @@ export const annouceUserIsStreaming = async (
   audioPlayer: AudioPlayer,
   username: string
 ) => {
-  // Connect the bot to the channel
   const connection = await connectToChannel(channel);
 
-  // Subscribe to the audio player
   connection?.subscribe(audioPlayer);
 
   const stream = discordTTS.getVoiceStream(
@@ -57,18 +55,14 @@ export const playClip = async (
   channel: VoiceBasedChannel,
   audioPlayer: AudioPlayer
 ) => {
-  // Connect the bot to the channel
   const connection = await connectToChannel(channel);
 
-  // Subscribe to the audio player
   connection?.subscribe(audioPlayer);
 
-  // Create the audio resource
   const resource = createAudioResource('./clips/' + clipName, {
     inputType: StreamType.Arbitrary
   });
 
-  // Play the clip
   audioPlayer.play(resource);
 
   // Return when the audio player signals it's playing
