@@ -10,7 +10,11 @@ import {
   createAudioPlayer,
   getVoiceConnection
 } from '@discordjs/voice';
-import { annouceUserIsStreaming, playClip } from './helpers';
+import {
+  annouceUnhandledUser,
+  annouceUserIsStreaming,
+  playClip
+} from './helpers';
 
 const PORT = process.env.PORT || 8081;
 const app = express();
@@ -75,10 +79,10 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     channel = newState.channel as VoiceBasedChannel;
     // Grab the username of the user who joined
     const username = newState?.member?.user.tag as string;
-
+    const usernameNoHash = username.slice(0, username.length - 5);
     const isStreaming = !oldState.streaming && newState.streaming;
     if (isStreaming) {
-      annouceUserIsStreaming(channel, audioPlayer, username);
+      annouceUserIsStreaming(channel, audioPlayer, usernameNoHash);
     }
 
     // The voiceStateUpdate callback is triggered for a variety of reasons, but we only care about some of them for intros.
@@ -110,7 +114,8 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
         );
       } else {
         if (username !== 'Big Announcer Dude#0867') {
-          console.log('Unhandled user joined a voice channel.');
+          console.log('Unhandled user joined a voice channel. Announcing...');
+          annouceUnhandledUser(channel, audioPlayer, usernameNoHash);
         }
       }
     }
