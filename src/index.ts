@@ -10,7 +10,7 @@ import {
   createAudioPlayer,
   getVoiceConnection
 } from '@discordjs/voice';
-import { playClip } from './helpers';
+import { annouceUserIsStreaming, playClip } from './helpers';
 
 const PORT = process.env.PORT || 8081;
 const app = express();
@@ -71,6 +71,16 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
   if (audioPlayer.state.status === AudioPlayerStatus.Idle) {
     // User joins channel.
 
+    // Set the channel for the bot to join
+    channel = newState.channel as VoiceBasedChannel;
+    // Grab the username of the user who joined
+    const username = newState?.member?.user.tag as string;
+
+    const isStreaming = !oldState.streaming && newState.streaming;
+    if (isStreaming) {
+      annouceUserIsStreaming(channel, audioPlayer, username);
+    }
+
     // The voiceStateUpdate callback is triggered for a variety of reasons, but we only care about some of them for intros.
     const DONT_INTRO = [
       (oldState.streaming && !newState.streaming) ||
@@ -91,11 +101,6 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
       DONT_INTRO.every((condition) => condition === false) &&
       (isJoiningChannel || isSwitchingChannel)
     ) {
-      // Set the channel for the bot to join
-      channel = newState.channel as VoiceBasedChannel;
-      // Grab the username of the user who joined
-      const username = newState?.member?.user.tag as string;
-
       // Play a clip based on the username
       if (discordUserAnnouncementDictionary[username]) {
         playClip(
