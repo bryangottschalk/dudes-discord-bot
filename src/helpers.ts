@@ -8,8 +8,9 @@ import {
   StreamType
 } from '@discordjs/voice';
 import { VoiceBasedChannel } from 'discord.js';
+const discordTTS = require('discord-tts');
 
-const connectToChannel = async (channel: VoiceBasedChannel) => {
+export const connectToChannel = async (channel: VoiceBasedChannel) => {
   // Create the connection to the voice channel
   const connection = joinVoiceChannel({
     channelId: channel.id,
@@ -24,6 +25,31 @@ const connectToChannel = async (channel: VoiceBasedChannel) => {
     connection.destroy();
     console.log('Error:', error);
   }
+};
+
+export const annouceUserIsStreaming = async (
+  channel: VoiceBasedChannel,
+  audioPlayer: AudioPlayer,
+  username: string
+) => {
+  // Connect the bot to the channel
+  const connection = await connectToChannel(channel);
+
+  // Subscribe to the audio player
+  connection?.subscribe(audioPlayer);
+
+  const stream = discordTTS.getVoiceStream(
+    `${username.slice(
+      0,
+      username.length - 5
+    )} is streaming! Can I get a hoy yah?`
+  );
+
+  const audioResource = createAudioResource(stream, {
+    inputType: StreamType.Arbitrary,
+    inlineVolume: true
+  });
+  audioPlayer.play(audioResource);
 };
 
 export const playClip = async (
