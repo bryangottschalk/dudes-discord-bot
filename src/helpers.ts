@@ -27,29 +27,6 @@ export const connectToChannel = async (channel: VoiceBasedChannel) => {
   }
 };
 
-export const annouceUserIsStreaming = async (
-  channel: VoiceBasedChannel,
-  audioPlayer: AudioPlayer,
-  username: string
-) => {
-  const connection = await connectToChannel(channel);
-
-  connection?.subscribe(audioPlayer);
-
-  const stream = discordTTS.getVoiceStream(
-    `${username.slice(
-      0,
-      username.length - 5
-    )} is streaming! Can I get a hoy yah?`
-  );
-
-  const audioResource = createAudioResource(stream, {
-    inputType: StreamType.Arbitrary,
-    inlineVolume: true
-  });
-  audioPlayer.play(audioResource);
-};
-
 export const playClip = async (
   clipName: string,
   channel: VoiceBasedChannel,
@@ -67,4 +44,44 @@ export const playClip = async (
 
   // Return when the audio player signals it's playing
   return entersState(audioPlayer, AudioPlayerStatus.Playing, 5000);
+};
+
+export const annouceUnhandledUser = async (
+  channel: VoiceBasedChannel,
+  audioPlayer: AudioPlayer,
+  username: string
+) => {
+  const connection = await connectToChannel(channel);
+
+  connection?.subscribe(audioPlayer);
+
+  const stream = discordTTS.getVoiceStream(
+    `Aww shit we got ${username} up in here. That's a big ass guy!`
+  );
+
+  const audioResource = createAudioResource(stream, {
+    inputType: StreamType.Arbitrary,
+    inlineVolume: true
+  });
+  audioPlayer.play(audioResource);
+};
+
+export const annouceUserIsStreaming = async (
+  channel: VoiceBasedChannel,
+  audioPlayer: AudioPlayer,
+  username: string
+) => {
+  const connection = await connectToChannel(channel);
+
+  connection?.subscribe(audioPlayer);
+
+  const stream = discordTTS.getVoiceStream(
+    `${username} is streaming! Can I get a hoy yah?`
+  );
+
+  const audioResource = createAudioResource(stream, {
+    inputType: StreamType.Arbitrary,
+    inlineVolume: true
+  });
+  audioPlayer.play(audioResource);
 };
