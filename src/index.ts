@@ -57,6 +57,8 @@ audioPlayer.on('error', (error) => {
   console.log('Error with audio player:', error);
 });
 
+const botUsernames: string[] = ['Big Announcer Dude#0867', 'dpr-DiscoBot#6636'];
+
 const discordUserAnnouncementDictionary: { [key: string]: string } = {
   'kyhole#3631': 'shutUpKyle.mp3',
   'robborg#4693': 'RobbieHasArrived.mp3',
@@ -113,7 +115,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
           audioPlayer
         );
       } else {
-        if (username !== 'Big Announcer Dude#0867') {
+        if (!botUsernames.includes(username)) {
           console.log('Unhandled user joined a voice channel. Announcing...');
           annouceUnhandledUser(channel, audioPlayer, usernameNoHash);
         }
