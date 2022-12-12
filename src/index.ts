@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import fs from 'fs';
 import {
   Client,
   GatewayIntentBits,
@@ -8,11 +9,13 @@ import {
 import {
   AudioPlayerStatus,
   createAudioPlayer,
+  entersState,
   getVoiceConnection
 } from '@discordjs/voice';
 import {
   annouceUnhandledUser,
   annouceUserIsStreaming,
+  connectToChannel,
   playClip
 } from './helpers';
 
@@ -26,7 +29,8 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildVoiceStates,
-    GatewayIntentBits.GuildMessages
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent
   ],
   partials: [Partials.Channel]
 });
@@ -70,6 +74,44 @@ const discordUserAnnouncementDictionary: { [key: string]: string } = {
   'lKoNFlicTl#3922': 'This_is_Patrick.mp3',
   'NutDragSwag#0374': 'alexander_the_great.mp3'
 };
+
+// Event triggered when a message is sent in a text channel
+client.on('messageCreate', async (message) => {
+  // Commands are represented by a '!'
+  if (message.content.charAt(0) == '!') {
+    const userCommand = message.content.split('!')[1].toLowerCase();
+    channel = message.member?.voice.channel as VoiceBasedChannel;
+
+    if (channel) {
+      if (userCommand === 'cmere') {
+        const connection = await connectToChannel(channel);
+        connection?.subscribe(audioPlayer);
+      } else if (userCommand === 'gtfo') {
+        // Stop the audio player if it's playing. This will cause the bot
+        // to disconnect from the voice channel as well
+        if (audioPlayer.state.status === AudioPlayerStatus.Playing) {
+          audioPlayer.stop(true);
+
+          // Return when the audio player signals it's idle
+          await entersState(audioPlayer, AudioPlayerStatus.Idle, 5000);
+          return;
+        } else {
+          // If not playing anything, simply disconnect from the voice channel
+          const connection = getVoiceConnection(channel.guild.id);
+          connection?.destroy();
+        }
+      } else {
+        fs.readdir('./clips', function(err, files) {
+          files.forEach(function(file, index) {
+              if (file.split(".")[0] == userCommand) {
+                playClip(file, channel, audioPlayer);
+              }
+          });
+        });
+      }
+    }
+  }
+});
 
 // Event triggered when a user changes voice state - e.g. joins/leaves a channel, mutes/unmutes, etc.
 client.on('voiceStateUpdate', async (oldState, newState) => {
