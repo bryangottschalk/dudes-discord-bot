@@ -18,11 +18,14 @@ import {
   connectToChannel,
   playClip
 } from './helpers';
+import { pollCurrentGame } from './league-of-legends-api/poll-current-game';
 
 const PORT = process.env.PORT || 8081;
 const app = express();
 
-const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
+const DISCORD_BOT_TOKEN: string = process.env.DISCORD_BOT_TOKEN || '';
+const IS_LOL_ANNOUNCER_ENABLED: boolean =
+  Boolean(process.env.LEAGUE_OF_LEGENDS_ANNOUNCER_ENABLED) ?? false;
 
 // Create the bot
 const client = new Client({
@@ -52,8 +55,11 @@ const audioPlayer = createAudioPlayer();
 
 // Event triggered when the audio player goes idle (i.e. not playing anything)
 audioPlayer.on(AudioPlayerStatus.Idle, () => {
+  // Restore this logic to disconnect bot after it announces clips. Removing it causes the bot to stay in the channel
+  /*
   const connection = getVoiceConnection(channel.guild.id);
   connection?.destroy() ?? console.log('No connection found.');
+  */
 });
 
 // Event triggered when there is an error with the audio player
@@ -121,6 +127,11 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
 
     // Set the channel for the bot to join
     channel = newState.channel as VoiceBasedChannel;
+
+    if (IS_LOL_ANNOUNCER_ENABLED) {
+      pollCurrentGame(channel, audioPlayer);
+    }
+
     // Grab the username of the user who joined
     const username = newState?.member?.user.tag as string;
     const usernameNoHash = username.slice(0, username.length - 5);
