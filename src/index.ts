@@ -78,7 +78,7 @@ const discordUserAnnouncementDictionary: { [key: string]: string } = {
 // Event triggered when a message is sent in a text channel
 client.on('messageCreate', async (message) => {
   // Commands are represented by a '!'
-  if (message.content.charAt(0) == '!') {
+  if (message.content.charAt(0) === '!') {
     const userCommand = message.content.split('!')[1].toLowerCase();
     channel = message.member?.voice.channel as VoiceBasedChannel;
 
@@ -101,9 +101,9 @@ client.on('messageCreate', async (message) => {
           connection?.destroy();
         }
       } else {
-        fs.readdir('./clips', function(err, files) {
-          files.forEach(function(file, index) {
-              if (file.split(".")[0] == userCommand) {
+        fs.readdir('./clips', (err, files) => {
+          files.forEach((file, index) => {
+              if (file.split(".")[0] === userCommand) {
                 playClip(file, channel, audioPlayer);
               }
           });
