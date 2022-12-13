@@ -85,3 +85,8 @@ export const annouceUserIsStreaming = async (
   });
   audioPlayer.play(audioResource);
 };
+
+export const setIntervalImmediately = (func: Function, interval: number) => {
+  func();
+  return setInterval(func, interval);
+};
