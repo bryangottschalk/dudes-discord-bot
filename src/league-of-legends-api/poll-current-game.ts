@@ -7,7 +7,6 @@ import { Player, RootGameObject } from './types/index';
 const https = require('https');
 
 const LOL_GAME_CLIENT_API = 'https://127.0.0.1:2999/liveclientdata';
-const HALF_SECOND = 500;
 
 const httpsAgent = new https.Agent({
   rejectUnauthorized: false,
@@ -52,5 +51,5 @@ export const pollCurrentGame = async (
       }
       console.log(ERROR_MSG);
     }
-  }, HALF_SECOND);
+  }, 200);
 };
