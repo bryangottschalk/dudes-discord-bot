@@ -26,6 +26,7 @@ const app = express();
 const DISCORD_BOT_TOKEN: string = process.env.DISCORD_BOT_TOKEN || '';
 const IS_LOL_ANNOUNCER_ENABLED: boolean =
   Boolean(process.env.LEAGUE_OF_LEGENDS_ANNOUNCER_ENABLED) ?? false;
+const PATH_TO_CLIPS: string = process.env.PATH_TO_CLIPS || '';
 
 // Create the bot
 const client = new Client({
@@ -46,7 +47,7 @@ try {
 
 let channel: VoiceBasedChannel;
 
-client.once('ready', (client): void => {
+client.once('ready', (_): void => {
   console.log('Ready!');
 });
 
@@ -107,12 +108,16 @@ client.on('messageCreate', async (message) => {
           connection?.destroy();
         }
       } else {
-        fs.readdir('./clips', (err, files) => {
-          files.forEach((file, index) => {
-            if (file.split('.')[0] === userCommand) {
-              playClip(file, channel, audioPlayer);
-            }
-          });
+        fs.readdir(PATH_TO_CLIPS, (err, files) => {
+          if (err) {
+            console.log(err);
+          } else {
+            files.forEach((file) => {
+              if (file.split('.')[0].toLowerCase() === userCommand) {
+                playClip(PATH_TO_CLIPS + file, channel, audioPlayer);
+              }
+            });
+          }
         });
       }
     }
@@ -131,7 +136,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     channel = newState.channel as VoiceBasedChannel;
 
     if (IS_LOL_ANNOUNCER_ENABLED && !isPollingLolClient) {
-      pollCurrentGame(channel, audioPlayer);
+      pollCurrentGame(channel, audioPlayer, PATH_TO_CLIPS);
       isPollingLolClient = true;
     }
 
@@ -166,7 +171,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
       // Play a clip based on the username
       if (discordUserAnnouncementDictionary[username]) {
         playClip(
-          discordUserAnnouncementDictionary[username],
+          PATH_TO_CLIPS + discordUserAnnouncementDictionary[username],
           channel,
           audioPlayer
         );
@@ -186,7 +191,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     ) {
       // Bot will join the channel the user left
       channel = oldState.channel;
-      await playClip('seeyalata.mp3', channel, audioPlayer);
+      await playClip(PATH_TO_CLIPS + 'seeyalata.mp3', channel, audioPlayer);
     }
   }
 });

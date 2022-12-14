@@ -17,7 +17,8 @@ let cachedGame: RootGameObject;
 
 export const pollCurrentGame = async (
   channel: VoiceBasedChannel,
-  audioPlayer: AudioPlayer
+  audioPlayer: AudioPlayer,
+  pathToClips: string
 ) => {
   setIntervalImmediately(async () => {
     try {
@@ -35,7 +36,7 @@ export const pollCurrentGame = async (
         )
       ) {
         console.log('Kill occured!');
-        await playClip('PUNCH.mp3', channel, audioPlayer);
+        await playClip(pathToClips + 'PUNCH.mp3', channel, audioPlayer);
       }
       cachedGame = latestGameResponse;
     } catch (err: unknown | AxiosError) {
