@@ -3,7 +3,7 @@ import { VoiceBasedChannel } from 'discord.js';
 import { playClip, setIntervalImmediately } from '../helpers';
 import fs from 'fs';
 import { AudioPlayer } from '@discordjs/voice';
-import { Event, RootEventsObject } from './types/index';
+import { Event, LoLClientEvent, RootEventsObject } from './types/index';
 const https = require('https');
 
 const LOL_GAME_CLIENT_API = 'https://127.0.0.1:2999/liveclientdata';
@@ -27,21 +27,25 @@ export const pollCurrentGame = async (
         `${LOL_GAME_CLIENT_API}/eventdata`,
         { httpsAgent }
       );
-      let newEvent = currentEvents[currentEvents.length - 1];
-
-      if (newEvent) {
+      if (currentEvents.length > cachedEvents.length) {
+        let newEvent = currentEvents[currentEvents.length - 1];
         switch (newEvent?.EventName) {
-          case 'GameStart': {
+          case LoLClientEvent.GAME_START: {
             console.log('game start!');
             await playClip('halo_slayer.mp3', channel, audioPlayer);
             break;
           }
-          case 'ChampionKill': {
+          case LoLClientEvent.FIRST_BLOOD: {
+            console.log('first blood!');
+            await playClip('firstblood.mp3', channel, audioPlayer);
+            break;
+          }
+          case LoLClientEvent.CHAMPION_KILL: {
             console.log('kill occured!');
             await playClip('PUNCH.mp3', channel, audioPlayer);
             break;
           }
-          case 'Multikill': {
+          case LoLClientEvent.MULTI_KILL: {
             if (newEvent.KillStreak === 2) {
               console.log('doublekill occured!');
               await playClip('halo_doublekill.mp3', channel, audioPlayer);
@@ -61,7 +65,7 @@ export const pollCurrentGame = async (
             }
             break;
           }
-          case 'Ace': {
+          case LoLClientEvent.ACE: {
             console.log('ace occured!');
             await playClip(
               'halo_unfreakinbelievable.mp3',
@@ -70,7 +74,7 @@ export const pollCurrentGame = async (
             );
             break;
           }
-          case 'GameEnd': {
+          case LoLClientEvent.GAME_END: {
             if (newEvent?.Result === 'Win') {
               console.log('victory!');
               await playClip('halo_victory_grunt.mp3', channel, audioPlayer);

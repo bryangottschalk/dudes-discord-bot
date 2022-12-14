@@ -1,8 +1,17 @@
 export interface RootGameObject {
   activePlayer: ActivePlayer;
   allPlayers: Player[];
-  events: Events;
+  events: Event[];
   gameData: GameData;
+}
+
+export enum LoLClientEvent {
+  GAME_START = 'GameStart',
+  FIRST_BLOOD = 'FirstBlood',
+  CHAMPION_KILL = 'ChampionKill',
+  MULTI_KILL = 'Multikill',
+  ACE = 'Ace',
+  GAME_END = 'GameEnd'
 }
 
 export interface E {
