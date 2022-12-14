@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import fs from 'fs';
 import {
+  ActivityType,
   Client,
   GatewayIntentBits,
   Partials,
@@ -31,8 +32,9 @@ const IS_LOL_ANNOUNCER_ENABLED: boolean =
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildVoiceStates,
     GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildPresences,
+    GatewayIntentBits.GuildVoiceStates,
     GatewayIntentBits.MessageContent
   ],
   partials: [Partials.Channel]
@@ -45,6 +47,7 @@ try {
 }
 
 let channel: VoiceBasedChannel;
+let leagueOfLegendsPollIntervalId: number = 0;
 
 client.once('ready', (client): void => {
   console.log('Ready!');
@@ -119,8 +122,6 @@ client.on('messageCreate', async (message) => {
   }
 });
 
-let isPollingLolClient = false;
-
 // Event triggered when a user changes voice state - e.g. joins/leaves a channel, mutes/unmutes, etc.
 client.on('voiceStateUpdate', async (oldState, newState) => {
   // Only process if the audio player currently is idle
@@ -129,11 +130,6 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
 
     // Set the channel for the bot to join
     channel = newState.channel as VoiceBasedChannel;
-
-    if (IS_LOL_ANNOUNCER_ENABLED && !isPollingLolClient) {
-      pollCurrentGame(channel, audioPlayer);
-      isPollingLolClient = true;
-    }
 
     // Grab the username of the user who joined
     const username = newState?.member?.user.tag as string;
@@ -187,6 +183,43 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
       // Bot will join the channel the user left
       channel = oldState.channel;
       await playClip('seeyalata.mp3', channel, audioPlayer);
+    }
+  }
+});
+
+// Event triggered when a user's presence (e.g. status, activity, etc.) is changed.
+client.on("presenceUpdate", async (_, newPresence) => {
+  // Determine if this presence update is because a user is now playing a game
+  if (newPresence.activities[0]?.type === ActivityType.Playing) {
+    // Make sure the game is League of Legends
+    if (newPresence.activities[0].name === "League of Legends") {
+      // Determine the state of the activity
+      switch (newPresence.activities[0].state) {
+        case 'In Lobby': {
+          console.log('In Lobby');
+          break;
+        }
+        case 'In Champion Select': {
+          console.log('In Champion Select');
+          break;
+        }
+        case 'In Game': {
+          console.log('In Game');
+          if (leagueOfLegendsPollIntervalId === 0 && IS_LOL_ANNOUNCER_ENABLED) {
+            console.log("Polling game..");
+            leagueOfLegendsPollIntervalId = pollCurrentGame(channel, audioPlayer);
+          }
+          break;
+        }
+        default: {
+          if (leagueOfLegendsPollIntervalId !== 0) {
+            await clearInterval(leagueOfLegendsPollIntervalId);
+            console.log("No longer in game, polling stopped..");
+            leagueOfLegendsPollIntervalId = 0;
+          }
+          break;
+        }
+      }
     }
   }
 });

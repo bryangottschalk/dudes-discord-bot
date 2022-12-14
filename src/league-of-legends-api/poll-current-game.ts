@@ -15,11 +15,11 @@ const httpsAgent = new https.Agent({
 
 let cachedGame: RootGameObject;
 
-export const pollCurrentGame = async (
+export const pollCurrentGame = (
   channel: VoiceBasedChannel,
   audioPlayer: AudioPlayer
 ) => {
-  setIntervalImmediately(async () => {
+  return setIntervalImmediately(async () => {
     try {
       const { data: latestGameResponse }: AxiosResponse<RootGameObject> =
         await axios.get(`${LOL_GAME_CLIENT_API}/allgamedata`, { httpsAgent });
