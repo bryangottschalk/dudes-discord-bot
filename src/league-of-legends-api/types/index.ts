@@ -234,6 +234,7 @@ export interface Event {
   KillStreak?: number;
   Acer: string;
   AcingTeam: string;
+  Result: string;
 }
 
 export interface RootEventsObject {
