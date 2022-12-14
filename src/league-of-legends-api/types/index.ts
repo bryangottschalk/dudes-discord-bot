@@ -224,16 +224,19 @@ export interface Event {
   EventID: number;
   EventName: string;
   EventTime: number;
-  Assisters: string[];
   KillerName: string;
-  VictimName: string;
-  Recipient: string;
-  Stolen: string;
   TurretKilled: string;
+  Assisters: string[];
+  InhibKilled: string;
   DragonType: string;
+  Stolen: string;
+  VictimName: string;
+  KillStreak?: number;
+  Acer: string;
+  AcingTeam: string;
 }
 
-export interface Events {
+export interface RootEventsObject {
   Events: Event[];
 }
 
