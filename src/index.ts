@@ -109,15 +109,17 @@ client.on('messageCreate', async (message) => {
       } else {
         fs.readdir('./clips', (err, files) => {
           files.forEach((file, index) => {
-              if (file.split(".")[0] === userCommand) {
-                playClip(file, channel, audioPlayer);
-              }
+            if (file.split('.')[0] === userCommand) {
+              playClip(file, channel, audioPlayer);
+            }
           });
         });
       }
     }
   }
 });
+
+let isPollingLolClient = false;
 
 // Event triggered when a user changes voice state - e.g. joins/leaves a channel, mutes/unmutes, etc.
 client.on('voiceStateUpdate', async (oldState, newState) => {
@@ -128,8 +130,9 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     // Set the channel for the bot to join
     channel = newState.channel as VoiceBasedChannel;
 
-    if (IS_LOL_ANNOUNCER_ENABLED) {
+    if (IS_LOL_ANNOUNCER_ENABLED && !isPollingLolClient) {
       pollCurrentGame(channel, audioPlayer);
+      isPollingLolClient = true;
     }
 
     // Grab the username of the user who joined
