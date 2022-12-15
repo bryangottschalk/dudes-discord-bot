@@ -1,8 +1,17 @@
 export interface RootGameObject {
   activePlayer: ActivePlayer;
   allPlayers: Player[];
-  events: Events;
+  events: Event[];
   gameData: GameData;
+}
+
+export enum LoLClientEvent {
+  GAME_START = 'GameStart',
+  FIRST_BLOOD = 'FirstBlood',
+  CHAMPION_KILL = 'ChampionKill',
+  MULTI_KILL = 'Multikill',
+  ACE = 'Ace',
+  GAME_END = 'GameEnd'
 }
 
 export interface E {
@@ -224,16 +233,20 @@ export interface Event {
   EventID: number;
   EventName: string;
   EventTime: number;
-  Assisters: string[];
   KillerName: string;
-  VictimName: string;
-  Recipient: string;
-  Stolen: string;
   TurretKilled: string;
+  Assisters: string[];
+  InhibKilled: string;
   DragonType: string;
+  Stolen: string;
+  VictimName: string;
+  KillStreak?: number;
+  Acer: string;
+  AcingTeam: string;
+  Result: string;
 }
 
-export interface Events {
+export interface RootEventsObject {
   Events: Event[];
 }
 
