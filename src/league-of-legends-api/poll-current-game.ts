@@ -33,12 +33,20 @@ export const pollCurrentGame = (
         switch (newEvent?.EventName) {
           case LoLClientEvent.GAME_START: {
             console.log('game start!');
-            await playClip(`${pathToClips}halo_slayer.mp3`, channel, audioPlayer);
+            await playClip(
+              `${pathToClips}halo_slayer.mp3`,
+              channel,
+              audioPlayer
+            );
             break;
           }
           case LoLClientEvent.FIRST_BLOOD: {
             console.log('first blood!');
-            await playClip(`${pathToClips}firstblood.mp3`, channel, audioPlayer);
+            await playClip(
+              `${pathToClips}firstblood.mp3`,
+              channel,
+              audioPlayer
+            );
             break;
           }
           case LoLClientEvent.CHAMPION_KILL: {
@@ -49,13 +57,25 @@ export const pollCurrentGame = (
           case LoLClientEvent.MULTI_KILL: {
             if (newEvent.KillStreak === 2) {
               console.log('doublekill occured!');
-              await playClip(`${pathToClips}halo_doublekill.mp3`, channel, audioPlayer);
+              await playClip(
+                `${pathToClips}halo_doublekill.mp3`,
+                channel,
+                audioPlayer
+              );
             } else if (newEvent.KillStreak === 3) {
               console.log('triplekill occured!');
-              await playClip(`${pathToClips}halo_triplekill.mp3`, channel, audioPlayer);
+              await playClip(
+                `${pathToClips}halo_triplekill.mp3`,
+                channel,
+                audioPlayer
+              );
             } else if (newEvent.KillStreak === 4) {
               console.log('quadrakill occured!');
-              await playClip(`${pathToClips}halo_killtacular.mp3`, channel, audioPlayer);
+              await playClip(
+                `${pathToClips}halo_killtacular.mp3`,
+                channel,
+                audioPlayer
+              );
             } else if (newEvent.KillStreak === 5) {
               console.log('pentakill occured!');
               await playClip(
@@ -66,22 +86,30 @@ export const pollCurrentGame = (
             }
             break;
           }
-          case LoLClientEvent.ACE: {
-            console.log('ace occured!');
-            await playClip(
-              `${pathToClips}halo_unfreakinbelievable.mp3`,
-              channel,
-              audioPlayer
-            );
-            break;
-          }
+          // case LoLClientEvent.ACE: {
+          //   console.log('ace occured!');
+          //   await playClip(
+          //     `${pathToClips}halo_unfreakinbelievable.mp3`,
+          //     channel,
+          //     audioPlayer
+          //   );
+          //   break;
+          // }
           case LoLClientEvent.GAME_END: {
             if (newEvent?.Result === 'Win') {
               console.log('victory!');
-              await playClip(`${pathToClips}halo_victory_grunt.mp3`, channel, audioPlayer);
+              await playClip(
+                `${pathToClips}halo_victory_grunt.mp3`,
+                channel,
+                audioPlayer
+              );
             } else {
               console.log('defeat!');
-              await playClip(`${pathToClips}loser_spongebob.mp3`, channel, audioPlayer);
+              await playClip(
+                `${pathToClips}loser_spongebob.mp3`,
+                channel,
+                audioPlayer
+              );
             }
             break;
           }
