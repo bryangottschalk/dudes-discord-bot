@@ -15,11 +15,11 @@ const httpsAgent = new https.Agent({
 
 let cachedEvents: Event[] = [];
 
-export const pollCurrentGame = async (
+export const pollCurrentGame = (
   channel: VoiceBasedChannel,
   audioPlayer: AudioPlayer
 ) => {
-  setIntervalImmediately(async () => {
+  return setIntervalImmediately(async () => {
     try {
       const {
         data: { Events: currentEvents }
