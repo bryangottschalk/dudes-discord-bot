@@ -1,6 +1,8 @@
 # Dudes Discord bot
 
-Discord announcer bot that plays user-specific audio clips when members join/leave the designated server's voice channels, announcing their presence.
+ - Discord announcer bot that plays user-specific audio clips when members join/leave the designated server's voice channels, announcing their presence.
+ - Plays mp3 sound clips from a certain pointed-to directory.
+ - Announces local League of Legends game events and plays sound clips.
 
 Based on https://github.com/walworob/dpr-discobot
 
@@ -21,4 +23,4 @@ Create a `.env` file and copy/paste the contents of `.env.sample` into it to get
 
 ### Adding a clip to play when you join a voice channel
 
-Upload a short audio file to `/clips` and append your username and the filename you uploaded to the `discordUserAnnouncementDictionary`
+Upload a short audio file to your clips folder (path stored in the environment variable PATH_TO_CLIPS) and append your username and the filename you uploaded to the `discordUserAnnouncementDictionary`.

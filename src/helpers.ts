@@ -28,7 +28,7 @@ export const connectToChannel = async (channel: VoiceBasedChannel) => {
 };
 
 export const playClip = async (
-  clipName: string,
+  filePathToClip: string,
   channel: VoiceBasedChannel,
   audioPlayer: AudioPlayer
 ) => {
@@ -36,7 +36,7 @@ export const playClip = async (
 
   connection?.subscribe(audioPlayer);
 
-  const resource = createAudioResource('./clips/' + clipName, {
+  const resource = createAudioResource(filePathToClip, {
     inputType: StreamType.Arbitrary
   });
 
