@@ -36,7 +36,7 @@ export const pollCurrentGame = async (
         )
       ) {
         console.log('Kill occured!');
-        await playClip(pathToClips + 'PUNCH.mp3', channel, audioPlayer);
+        await playClip(`${pathToClips}PUNCH.mp3`, channel, audioPlayer);
       }
       cachedGame = latestGameResponse;
     } catch (err: unknown | AxiosError) {

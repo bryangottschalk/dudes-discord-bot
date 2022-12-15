@@ -114,7 +114,7 @@ client.on('messageCreate', async (message) => {
           } else {
             files.forEach((file) => {
               if (file.split('.')[0].toLowerCase() === userCommand) {
-                playClip(PATH_TO_CLIPS + file, channel, audioPlayer);
+                playClip(`${PATH_TO_CLIPS}${file}`, channel, audioPlayer);
               }
             });
           }
@@ -171,7 +171,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
       // Play a clip based on the username
       if (discordUserAnnouncementDictionary[username]) {
         playClip(
-          PATH_TO_CLIPS + discordUserAnnouncementDictionary[username],
+          `${PATH_TO_CLIPS}${discordUserAnnouncementDictionary[username]}`,
           channel,
           audioPlayer
         );
@@ -191,7 +191,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     ) {
       // Bot will join the channel the user left
       channel = oldState.channel;
-      await playClip(PATH_TO_CLIPS + 'seeyalata.mp3', channel, audioPlayer);
+      await playClip(`${PATH_TO_CLIPS}seeyalata.mp3`, channel, audioPlayer);
     }
   }
 });
