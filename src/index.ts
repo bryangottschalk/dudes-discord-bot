@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import fs from 'fs';
 import {
+  ActivityType,
   Client,
   GatewayIntentBits,
   Partials,
@@ -32,8 +33,9 @@ const PATH_TO_CLIPS: string = process.env.PATH_TO_CLIPS || '';
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildVoiceStates,
     GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildPresences,
+    GatewayIntentBits.GuildVoiceStates,
     GatewayIntentBits.MessageContent
   ],
   partials: [Partials.Channel]
@@ -46,6 +48,7 @@ try {
 }
 
 let channel: VoiceBasedChannel;
+let leagueOfLegendsPollIntervalId: number = 0;
 
 client.once('ready', (_): void => {
   console.log('Ready!');
@@ -124,8 +127,6 @@ client.on('messageCreate', async (message) => {
   }
 });
 
-let isPollingLolClient = false;
-
 // Event triggered when a user changes voice state - e.g. joins/leaves a channel, mutes/unmutes, etc.
 client.on('voiceStateUpdate', async (oldState, newState) => {
   // Only process if the audio player currently is idle
@@ -135,11 +136,14 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     // Set the channel for the bot to join
     channel = newState.channel as VoiceBasedChannel;
 
+<<<<<<< HEAD
     if (IS_LOL_ANNOUNCER_ENABLED && !isPollingLolClient) {
       pollCurrentGame(channel, audioPlayer, PATH_TO_CLIPS);
       isPollingLolClient = true;
     }
 
+=======
+>>>>>>> master
     // Grab the username of the user who joined
     const username = newState?.member?.user.tag as string;
     const usernameNoHash = username.slice(0, username.length - 5);
@@ -192,6 +196,51 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
       // Bot will join the channel the user left
       channel = oldState.channel;
       await playClip(`${PATH_TO_CLIPS}seeyalata.mp3`, channel, audioPlayer);
+    }
+  }
+});
+
+enum PresenceState {
+  IN_CHAMP_SELECT = 'In Champion Select',
+  IN_GAME = 'In Game',
+  IN_LOBBY = 'In Lobby',
+  IN_QUEUE = 'In Queue'
+}
+
+// Event triggered when a user's presence (e.g. status, activity, etc.) is changed.
+client.on("presenceUpdate", async (_, newPresence) => {
+  // Determine if there are any new activities to report
+  let newActivity = newPresence.activities[0];
+  if (newActivity) {
+    // Determine if this presence update is because a user is now playing a game
+    if (newActivity.type === ActivityType.Playing) {
+      // Make sure the game is League of Legends
+      if (newActivity.name === "League of Legends") {
+        // Determine the state of the activity
+        console.log(newActivity.state);
+        switch (newActivity.state) {
+          case PresenceState.IN_LOBBY:
+          case PresenceState.IN_QUEUE:
+          case PresenceState.IN_CHAMP_SELECT: {
+            break;
+          }
+          case PresenceState.IN_GAME: {
+            if (leagueOfLegendsPollIntervalId === 0 && IS_LOL_ANNOUNCER_ENABLED) {
+              console.log("Polling game..");
+              leagueOfLegendsPollIntervalId = pollCurrentGame(channel, audioPlayer);
+            }
+            break;
+          }
+          default: {
+            if (leagueOfLegendsPollIntervalId !== 0) {
+              await clearInterval(leagueOfLegendsPollIntervalId);
+              console.log("No longer in game, polling stopped..");
+              leagueOfLegendsPollIntervalId = 0;
+            }
+            break;
+          }
+        }
+      }
     }
   }
 });
