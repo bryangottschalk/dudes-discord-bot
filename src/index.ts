@@ -136,14 +136,6 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     // Set the channel for the bot to join
     channel = newState.channel as VoiceBasedChannel;
 
-<<<<<<< HEAD
-    if (IS_LOL_ANNOUNCER_ENABLED && !isPollingLolClient) {
-      pollCurrentGame(channel, audioPlayer, PATH_TO_CLIPS);
-      isPollingLolClient = true;
-    }
-
-=======
->>>>>>> master
     // Grab the username of the user who joined
     const username = newState?.member?.user.tag as string;
     const usernameNoHash = username.slice(0, username.length - 5);
@@ -227,7 +219,7 @@ client.on("presenceUpdate", async (_, newPresence) => {
           case PresenceState.IN_GAME: {
             if (leagueOfLegendsPollIntervalId === 0 && IS_LOL_ANNOUNCER_ENABLED) {
               console.log("Polling game..");
-              leagueOfLegendsPollIntervalId = pollCurrentGame(channel, audioPlayer);
+              leagueOfLegendsPollIntervalId = pollCurrentGame(channel, audioPlayer, PATH_TO_CLIPS);
             }
             break;
           }
