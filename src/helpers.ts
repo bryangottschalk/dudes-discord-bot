@@ -75,9 +75,7 @@ export const annouceUserIsStreaming = async (
 
   connection?.subscribe(audioPlayer);
 
-  const stream = discordTTS.getVoiceStream(
-    `${username} is streaming! Can I get a hoy yah?`
-  );
+  const stream = discordTTS.getVoiceStream(`${username} is streaming! Can I get a hoy yah?`);
 
   const audioResource = createAudioResource(stream, {
     inputType: StreamType.Arbitrary,

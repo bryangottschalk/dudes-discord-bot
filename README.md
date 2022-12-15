@@ -1,8 +1,8 @@
 # Dudes Discord bot
 
- - Discord announcer bot that plays user-specific audio clips when members join/leave the designated server's voice channels, announcing their presence.
- - Plays mp3 sound clips from a certain pointed-to directory.
- - Announces local League of Legends game events and plays sound clips.
+- Discord announcer bot that plays user-specific audio clips when members join/leave the designated server's voice channels, announcing their presence.
+- Plays mp3 sound clips from a certain pointed-to directory.
+- Announces local League of Legends game events and plays sound clips.
 
 Based on https://github.com/walworob/dpr-discobot
 
