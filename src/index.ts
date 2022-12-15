@@ -187,37 +187,45 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
   }
 });
 
+enum PresenceState {
+  IN_CHAMP_SELECT = 'In Champion Select',
+  IN_GAME = 'In Game',
+  IN_LOBBY = 'In Lobby',
+  IN_QUEUE = 'In Queue'
+}
+
 // Event triggered when a user's presence (e.g. status, activity, etc.) is changed.
 client.on("presenceUpdate", async (_, newPresence) => {
-  // Determine if this presence update is because a user is now playing a game
-  if (newPresence.activities[0]?.type === ActivityType.Playing) {
-    // Make sure the game is League of Legends
-    if (newPresence.activities[0].name === "League of Legends") {
-      // Determine the state of the activity
-      switch (newPresence.activities[0].state) {
-        case 'In Lobby': {
-          console.log('In Lobby');
-          break;
-        }
-        case 'In Champion Select': {
-          console.log('In Champion Select');
-          break;
-        }
-        case 'In Game': {
-          console.log('In Game');
-          if (leagueOfLegendsPollIntervalId === 0 && IS_LOL_ANNOUNCER_ENABLED) {
-            console.log("Polling game..");
-            leagueOfLegendsPollIntervalId = pollCurrentGame(channel, audioPlayer);
+  // Determine if there are any new activities to report
+  let newActivity = newPresence.activities[0];
+  if (newActivity) {
+    // Determine if this presence update is because a user is now playing a game
+    if (newActivity.type === ActivityType.Playing) {
+      // Make sure the game is League of Legends
+      if (newActivity.name === "League of Legends") {
+        // Determine the state of the activity
+        console.log(newActivity.state);
+        switch (newActivity.state) {
+          case PresenceState.IN_LOBBY:
+          case PresenceState.IN_QUEUE:
+          case PresenceState.IN_CHAMP_SELECT: {
+            break;
           }
-          break;
-        }
-        default: {
-          if (leagueOfLegendsPollIntervalId !== 0) {
-            await clearInterval(leagueOfLegendsPollIntervalId);
-            console.log("No longer in game, polling stopped..");
-            leagueOfLegendsPollIntervalId = 0;
+          case PresenceState.IN_GAME: {
+            if (leagueOfLegendsPollIntervalId === 0 && IS_LOL_ANNOUNCER_ENABLED) {
+              console.log("Polling game..");
+              leagueOfLegendsPollIntervalId = pollCurrentGame(channel, audioPlayer);
+            }
+            break;
           }
-          break;
+          default: {
+            if (leagueOfLegendsPollIntervalId !== 0) {
+              await clearInterval(leagueOfLegendsPollIntervalId);
+              console.log("No longer in game, polling stopped..");
+              leagueOfLegendsPollIntervalId = 0;
+            }
+            break;
+          }
         }
       }
     }
