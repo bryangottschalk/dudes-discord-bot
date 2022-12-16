@@ -4,6 +4,8 @@
     "lib": ["es6"],
     "allowJs": true,
     "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "sourceMap": false,
     "outDir": "./dist",
     "module": "commonjs",
