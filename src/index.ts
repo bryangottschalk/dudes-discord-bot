@@ -42,7 +42,7 @@ try {
 }
 
 let channel: VoiceBasedChannel | null | undefined;
-let leagueOfLegendsPollIntervalId = 0;
+let leagueOfLegendsPollIntervalId: NodeJS.Timer | null = null;
 
 client.once('ready', (): void => {
   console.log('Ready!');
@@ -191,7 +191,7 @@ enum PresenceState {
 // Event triggered when a user's presence (e.g. status, activity, etc.) is changed.
 client.on('presenceUpdate', async (_, newPresence) => {
   // Make sure this update is for someone present in the voice channel
-  let member = newPresence.member;
+  const member = newPresence.member;
   if (member && channel && member.voice.channelId == channel.id) {
     // Determine if there are any new activities to report
     const newActivity = newPresence.activities[0];
@@ -209,7 +209,7 @@ client.on('presenceUpdate', async (_, newPresence) => {
               break;
             }
             case PresenceState.IN_GAME: {
-              if (leagueOfLegendsPollIntervalId === 0 && IS_LOL_ANNOUNCER_ENABLED) {
+              if (leagueOfLegendsPollIntervalId === null && IS_LOL_ANNOUNCER_ENABLED) {
                 console.log('Polling game...');
                 leagueOfLegendsPollIntervalId = pollCurrentGame(
                   channel,
@@ -220,10 +220,10 @@ client.on('presenceUpdate', async (_, newPresence) => {
               break;
             }
             default: {
-              if (leagueOfLegendsPollIntervalId !== 0) {
+              if (leagueOfLegendsPollIntervalId !== null) {
                 clearInterval(leagueOfLegendsPollIntervalId);
-                console.log('No longer in game, polling stopped..');
-                leagueOfLegendsPollIntervalId = 0;
+                console.log('No longer in game, polling stopped...');
+                leagueOfLegendsPollIntervalId = null;
               }
               break;
             }

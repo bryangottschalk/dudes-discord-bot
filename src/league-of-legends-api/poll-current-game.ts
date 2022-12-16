@@ -3,7 +3,7 @@ import { VoiceBasedChannel } from 'discord.js';
 import { playClip, setIntervalImmediately } from '../helpers';
 import fs from 'fs';
 import { AudioPlayer } from '@discordjs/voice';
-import { Event, LoLClientEvent, RootEventsObject } from './types/index';
+import { Event, LoLClientEvent, RootEventsObject, RootGameObject } from './types/index';
 import https from 'https';
 
 const LOL_GAME_CLIENT_API = 'https://127.0.0.1:2999/liveclientdata';
@@ -14,14 +14,42 @@ const httpsAgent = new https.Agent({
 });
 
 let cachedEvents: Event[] = [];
+let cachedGame: RootGameObject | null = null;
+
+const setCachedEvents = (events: Event[]) => {
+  cachedEvents = events;
+};
+
+const setCachedGame = (game: RootGameObject | null) => {
+  cachedGame = game;
+};
+
+export const getAllGameData = async () => {
+  try {
+    const { data: rootGameObject }: AxiosResponse<RootGameObject> = await axios.get(
+      `${LOL_GAME_CLIENT_API}/allgamedata`,
+      {
+        httpsAgent
+      }
+    );
+    setCachedGame(rootGameObject);
+    console.log('cachedGame:', cachedGame);
+  } catch (err: unknown | AxiosError) {
+    const ERROR_MSG = `Error occured when getting game data: ${err}`;
+    console.log(ERROR_MSG);
+  }
+};
 
 export const pollCurrentGame = (
   channel: VoiceBasedChannel,
   audioPlayer: AudioPlayer,
   pathToClips: string
-) => {
+): NodeJS.Timer => {
   return setIntervalImmediately(async () => {
     try {
+      if (!cachedGame) {
+        getAllGameData();
+      }
       const {
         data: { Events: currentEvents }
       }: AxiosResponse<RootEventsObject> = await axios.get(`${LOL_GAME_CLIENT_API}/eventdata`, {
@@ -41,8 +69,27 @@ export const pollCurrentGame = (
             break;
           }
           case LoLClientEvent.CHAMPION_KILL: {
-            console.log('kill occured!');
-            await playClip(`${pathToClips}PUNCH.mp3`, channel, audioPlayer);
+            if (cachedGame) {
+              // Determine who is on the active player's team
+              const activePlayerSummonerName = cachedGame.activePlayer.summonerName;
+              const activePlayerTeam = cachedGame.allPlayers.find(
+                (p) => p.summonerName === activePlayerSummonerName
+              )?.team;
+              const victimSummonerName = newEvent?.VictimName;
+              const victimTeam = cachedGame.allPlayers.find(
+                (p) => p.summonerName === victimSummonerName
+              )?.team;
+
+              if (activePlayerTeam === victimTeam) {
+                // Someone on your team died
+                await playClip(`${pathToClips}bugsplat2.mp3`, channel, audioPlayer);
+              } else {
+                // Someone on enemy team died
+                await playClip(`${pathToClips}PUNCH.mp3`, channel, audioPlayer);
+              }
+            } else {
+              await playClip(`${pathToClips}PUNCH.mp3`, channel, audioPlayer);
+            }
             break;
           }
           case LoLClientEvent.MULTI_KILL: {
@@ -78,6 +125,8 @@ export const pollCurrentGame = (
               console.log('defeat!');
               await playClip(`${pathToClips}loser_spongebob.mp3`, channel, audioPlayer);
             }
+            setCachedEvents([]);
+            setCachedGame(null);
             break;
           }
           default: {
@@ -86,7 +135,7 @@ export const pollCurrentGame = (
           }
         }
       }
-      cachedEvents = currentEvents;
+      setCachedEvents(currentEvents);
     } catch (err: unknown | AxiosError) {
       let ERROR_MSG = '';
       if (axios.isAxiosError(err)) {
