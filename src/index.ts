@@ -42,9 +42,9 @@ try {
 }
 
 let channel: VoiceBasedChannel;
-let leagueOfLegendsPollIntervalId: number = 0;
+let leagueOfLegendsPollIntervalId = 0;
 
-client.once('ready', (_): void => {
+client.once('ready', (): void => {
   console.log('Ready!');
 });
 
@@ -191,7 +191,7 @@ enum PresenceState {
 // Event triggered when a user's presence (e.g. status, activity, etc.) is changed.
 client.on('presenceUpdate', async (_, newPresence) => {
   // Determine if there are any new activities to report
-  let newActivity = newPresence.activities[0];
+  const newActivity = newPresence.activities[0];
   if (newActivity) {
     // Determine if this presence update is because a user is now playing a game
     if (newActivity.type === ActivityType.Playing) {
@@ -226,7 +226,7 @@ client.on('presenceUpdate', async (_, newPresence) => {
   }
 });
 
-app.get('/', (req: Request, res: Response): void => {
+app.get('/', (_: Request, res: Response): void => {
   res.send(`Listening for Discord events on the server...`);
 });
 

@@ -8,7 +8,7 @@ import {
   StreamType
 } from '@discordjs/voice';
 import { VoiceBasedChannel } from 'discord.js';
-const discordTTS = require('discord-tts');
+import discordTTS from 'discord-tts';
 
 export const connectToChannel = async (channel: VoiceBasedChannel) => {
   // Create the connection to the voice channel
@@ -84,7 +84,7 @@ export const annouceUserIsStreaming = async (
   audioPlayer.play(audioResource);
 };
 
-export const setIntervalImmediately = (func: Function, interval: number) => {
+export const setIntervalImmediately = (func: { (): Promise<void>; (): void }, interval: number) => {
   func();
-  return setInterval(func, interval);
+  return window.setInterval(func, interval);
 };
