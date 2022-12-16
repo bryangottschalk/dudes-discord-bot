@@ -4,7 +4,7 @@ import { playClip, setIntervalImmediately } from '../helpers';
 import fs from 'fs';
 import { AudioPlayer } from '@discordjs/voice';
 import { Event, LoLClientEvent, RootEventsObject } from './types/index';
-const https = require('https');
+import https from 'https';
 
 const LOL_GAME_CLIENT_API = 'https://127.0.0.1:2999/liveclientdata';
 
@@ -28,7 +28,7 @@ export const pollCurrentGame = (
         httpsAgent
       });
       if (currentEvents.length > cachedEvents.length) {
-        let newEvent = currentEvents[currentEvents.length - 1];
+        const newEvent = currentEvents[currentEvents.length - 1];
         switch (newEvent?.EventName) {
           case LoLClientEvent.GAME_START: {
             console.log('game start!');
@@ -88,7 +88,7 @@ export const pollCurrentGame = (
       }
       cachedEvents = currentEvents;
     } catch (err: unknown | AxiosError) {
-      let ERROR_MSG: string = '';
+      let ERROR_MSG = '';
       if (axios.isAxiosError(err)) {
         if (err.cause?.message.includes('ECONNREFUSED')) {
           ERROR_MSG =
