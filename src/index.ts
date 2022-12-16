@@ -41,7 +41,7 @@ try {
   console.log(`Error logging in with Discord token: ${err}`);
 }
 
-let channel: VoiceBasedChannel;
+let channel: VoiceBasedChannel | null | undefined;
 let leagueOfLegendsPollIntervalId: number = 0;
 
 client.once('ready', (_): void => {
@@ -84,7 +84,7 @@ client.on('messageCreate', async (message) => {
   // Commands are represented by a '!'
   if (message.content.charAt(0) === '!') {
     const userCommand = message.content.split('!')[1].toLowerCase();
-    channel = message.member?.voice.channel as VoiceBasedChannel;
+    channel = message.member?.voice.channel;
 
     if (channel) {
       if (userCommand === 'cmere') {
@@ -111,7 +111,7 @@ client.on('messageCreate', async (message) => {
           } else {
             files.forEach((file) => {
               if (file.split('.')[0].toLowerCase() === userCommand) {
-                playClip(`${PATH_TO_CLIPS}${file}`, channel, audioPlayer);
+                playClip(`${PATH_TO_CLIPS}${file}`, channel as VoiceBasedChannel, audioPlayer);
               }
             });
           }
@@ -128,55 +128,55 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     // User joins channel.
 
     // Set the channel for the bot to join
-    channel = newState.channel as VoiceBasedChannel;
-
-    // Grab the username of the user who joined
-    const username = newState?.member?.user.tag as string;
-    const usernameNoHash = username.slice(0, username.length - 5);
-    const isStreaming = !oldState.streaming && newState.streaming;
-    if (isStreaming) {
-      annouceUserIsStreaming(channel, audioPlayer, usernameNoHash);
-    }
-
-    // The voiceStateUpdate callback is triggered for a variety of reasons, but we only care about some of them for intros.
-    const DONT_INTRO = [
-      (oldState.streaming && !newState.streaming) || (!oldState.streaming && newState.streaming),
-      (oldState.selfDeaf && !newState.selfDeaf) || (!oldState.selfDeaf && newState.selfDeaf),
-      (oldState.selfMute && !newState.selfMute) || (!oldState.selfMute && newState.selfMute),
-      (oldState.serverDeaf && !newState.serverDeaf) ||
-        (!oldState.serverDeaf && newState.serverDeaf),
-      (oldState.serverMute && !newState.serverMute) || (!oldState.serverMute && newState.serverMute)
-    ];
-    const isSwitchingChannel = Boolean(oldState.channel && newState.channel);
-    const isJoiningChannel = oldState.channel === null && newState.channel !== null;
-    if (
-      DONT_INTRO.every((condition) => condition === false) &&
-      (isJoiningChannel || isSwitchingChannel)
-    ) {
-      // Play a clip based on the username
-      if (discordUserAnnouncementDictionary[username]) {
-        playClip(
-          `${PATH_TO_CLIPS}${discordUserAnnouncementDictionary[username]}`,
-          channel,
-          audioPlayer
-        );
-      } else {
-        if (!botUsernames.includes(username)) {
-          console.log('Unhandled user joined a voice channel. Announcing...');
-          annouceUnhandledUser(channel, audioPlayer, usernameNoHash);
+    channel = newState.channel;
+    if (channel) {
+      // Grab the username of the user who joined
+      const username = newState?.member?.user.tag as string;
+      const usernameNoHash = username.slice(0, username.length - 5);
+      if (!oldState.streaming && newState.streaming) {
+        annouceUserIsStreaming(channel, audioPlayer, usernameNoHash);
+      }
+      // The voiceStateUpdate callback is triggered for a variety of reasons, but we only care about some of them for intros.
+      const DONT_INTRO = [
+        (oldState.streaming && !newState.streaming) || (!oldState.streaming && newState.streaming),
+        (oldState.selfDeaf && !newState.selfDeaf) || (!oldState.selfDeaf && newState.selfDeaf),
+        (oldState.selfMute && !newState.selfMute) || (!oldState.selfMute && newState.selfMute),
+        (oldState.serverDeaf && !newState.serverDeaf) ||
+          (!oldState.serverDeaf && newState.serverDeaf),
+        (oldState.serverMute && !newState.serverMute) ||
+          (!oldState.serverMute && newState.serverMute)
+      ];
+      const isSwitchingChannel = Boolean(oldState.channel && newState.channel);
+      const isJoiningChannel = oldState.channel === null && newState.channel !== null;
+      if (
+        DONT_INTRO.every((condition) => condition === false) &&
+        (isJoiningChannel || isSwitchingChannel)
+      ) {
+        // Play a clip based on the username
+        if (discordUserAnnouncementDictionary[username]) {
+          playClip(
+            `${PATH_TO_CLIPS}${discordUserAnnouncementDictionary[username]}`,
+            channel,
+            audioPlayer
+          );
+        } else {
+          if (!botUsernames.includes(username)) {
+            console.log('Unhandled user joined a voice channel. Announcing...');
+            annouceUnhandledUser(channel, audioPlayer, usernameNoHash);
+          }
         }
       }
-    }
-    // User (not a bot) exits channel with users still in it
-    else if (
-      oldState.channel !== null &&
-      newState.channel === null &&
-      !oldState?.member?.user.bot &&
-      oldState.channel.members.size !== 0 // don't bother playing if no one is still in the channel
-    ) {
-      // Bot will join the channel the user left
-      channel = oldState.channel;
-      await playClip(`${PATH_TO_CLIPS}seeyalata.mp3`, channel, audioPlayer);
+      // User (not a bot) exits channel with users still in it
+      else if (
+        oldState.channel !== null &&
+        newState.channel === null &&
+        !oldState?.member?.user.bot &&
+        oldState.channel.members.size !== 0 // don't bother playing if no one is still in the channel
+      ) {
+        // Bot will join the channel the user left
+        channel = oldState.channel;
+        await playClip(`${PATH_TO_CLIPS}seeyalata.mp3`, channel, audioPlayer);
+      }
     }
   }
 });
@@ -190,35 +190,43 @@ enum PresenceState {
 
 // Event triggered when a user's presence (e.g. status, activity, etc.) is changed.
 client.on('presenceUpdate', async (_, newPresence) => {
-  // Determine if there are any new activities to report
-  let newActivity = newPresence.activities[0];
-  if (newActivity) {
-    // Determine if this presence update is because a user is now playing a game
-    if (newActivity.type === ActivityType.Playing) {
-      // Make sure the game is League of Legends
-      if (newActivity.name === 'League of Legends') {
-        // Determine the state of the activity
-        console.log(newActivity.state);
-        switch (newActivity.state) {
-          case PresenceState.IN_LOBBY:
-          case PresenceState.IN_QUEUE:
-          case PresenceState.IN_CHAMP_SELECT: {
-            break;
-          }
-          case PresenceState.IN_GAME: {
-            if (leagueOfLegendsPollIntervalId === 0 && IS_LOL_ANNOUNCER_ENABLED) {
-              console.log('Polling game...');
-              leagueOfLegendsPollIntervalId = pollCurrentGame(channel, audioPlayer, PATH_TO_CLIPS);
+  // Make sure this update is for someone present in the voice channel
+  let member = newPresence.member;
+  if (member && channel && member.voice.channelId == channel.id) {
+    // Determine if there are any new activities to report
+    let newActivity = newPresence.activities[0];
+    if (newActivity) {
+      // Determine if this presence update is because a user is now playing a game
+      if (newActivity.type === ActivityType.Playing) {
+        // Make sure the game is League of Legends
+        if (newActivity.name === 'League of Legends') {
+          // Determine the state of the activity
+          console.log(newActivity.state);
+          switch (newActivity.state) {
+            case PresenceState.IN_LOBBY:
+            case PresenceState.IN_QUEUE:
+            case PresenceState.IN_CHAMP_SELECT: {
+              break;
             }
-            break;
-          }
-          default: {
-            if (leagueOfLegendsPollIntervalId !== 0) {
-              clearInterval(leagueOfLegendsPollIntervalId);
-              console.log('No longer in game, polling stopped..');
-              leagueOfLegendsPollIntervalId = 0;
+            case PresenceState.IN_GAME: {
+              if (leagueOfLegendsPollIntervalId === 0 && IS_LOL_ANNOUNCER_ENABLED) {
+                console.log('Polling game...');
+                leagueOfLegendsPollIntervalId = pollCurrentGame(
+                  channel,
+                  audioPlayer,
+                  PATH_TO_CLIPS
+                );
+              }
+              break;
             }
-            break;
+            default: {
+              if (leagueOfLegendsPollIntervalId !== 0) {
+                clearInterval(leagueOfLegendsPollIntervalId);
+                console.log('No longer in game, polling stopped..');
+                leagueOfLegendsPollIntervalId = 0;
+              }
+              break;
+            }
           }
         }
       }
