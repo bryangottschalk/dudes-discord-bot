@@ -1,12 +1,6 @@
 import express, { Request, Response } from 'express';
 import fs from 'fs';
-import {
-  ActivityType,
-  Client,
-  GatewayIntentBits,
-  Partials,
-  VoiceBasedChannel
-} from 'discord.js';
+import { ActivityType, Client, GatewayIntentBits, Partials, VoiceBasedChannel } from 'discord.js';
 import {
   AudioPlayerStatus,
   createAudioPlayer,
@@ -146,20 +140,15 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
 
     // The voiceStateUpdate callback is triggered for a variety of reasons, but we only care about some of them for intros.
     const DONT_INTRO = [
-      (oldState.streaming && !newState.streaming) ||
-        (!oldState.streaming && newState.streaming),
-      (oldState.selfDeaf && !newState.selfDeaf) ||
-        (!oldState.selfDeaf && newState.selfDeaf),
-      (oldState.selfMute && !newState.selfMute) ||
-        (!oldState.selfMute && newState.selfMute),
+      (oldState.streaming && !newState.streaming) || (!oldState.streaming && newState.streaming),
+      (oldState.selfDeaf && !newState.selfDeaf) || (!oldState.selfDeaf && newState.selfDeaf),
+      (oldState.selfMute && !newState.selfMute) || (!oldState.selfMute && newState.selfMute),
       (oldState.serverDeaf && !newState.serverDeaf) ||
         (!oldState.serverDeaf && newState.serverDeaf),
-      (oldState.serverMute && !newState.serverMute) ||
-        (!oldState.serverMute && newState.serverMute)
+      (oldState.serverMute && !newState.serverMute) || (!oldState.serverMute && newState.serverMute)
     ];
     const isSwitchingChannel = Boolean(oldState.channel && newState.channel);
-    const isJoiningChannel =
-      oldState.channel === null && newState.channel !== null;
+    const isJoiningChannel = oldState.channel === null && newState.channel !== null;
     if (
       DONT_INTRO.every((condition) => condition === false) &&
       (isJoiningChannel || isSwitchingChannel)
@@ -217,16 +206,9 @@ client.on('presenceUpdate', async (_, newPresence) => {
             break;
           }
           case PresenceState.IN_GAME: {
-            if (
-              leagueOfLegendsPollIntervalId === 0 &&
-              IS_LOL_ANNOUNCER_ENABLED
-            ) {
+            if (leagueOfLegendsPollIntervalId === 0 && IS_LOL_ANNOUNCER_ENABLED) {
               console.log('Polling game...');
-              leagueOfLegendsPollIntervalId = pollCurrentGame(
-                channel,
-                audioPlayer,
-                PATH_TO_CLIPS
-              );
+              leagueOfLegendsPollIntervalId = pollCurrentGame(channel, audioPlayer, PATH_TO_CLIPS);
             }
             break;
           }
