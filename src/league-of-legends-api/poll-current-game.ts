@@ -44,7 +44,7 @@ export const pollCurrentGame = (
   channel: VoiceBasedChannel,
   audioPlayer: AudioPlayer,
   pathToClips: string
-): unknown => {
+): NodeJS.Timer => {
   return setIntervalImmediately(async () => {
     try {
       if (!cachedGame) {

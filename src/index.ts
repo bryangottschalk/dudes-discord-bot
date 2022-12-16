@@ -42,7 +42,7 @@ try {
 }
 
 let channel: VoiceBasedChannel | null | undefined;
-let leagueOfLegendsPollIntervalId: number | unknown = 0;
+let leagueOfLegendsPollIntervalId: NodeJS.Timer | null = null;
 
 client.once('ready', (): void => {
   console.log('Ready!');
@@ -209,7 +209,7 @@ client.on('presenceUpdate', async (_, newPresence) => {
               break;
             }
             case PresenceState.IN_GAME: {
-              if (leagueOfLegendsPollIntervalId === 0 && IS_LOL_ANNOUNCER_ENABLED) {
+              if (leagueOfLegendsPollIntervalId === null && IS_LOL_ANNOUNCER_ENABLED) {
                 console.log('Polling game...');
                 leagueOfLegendsPollIntervalId = pollCurrentGame(
                   channel,
@@ -220,12 +220,10 @@ client.on('presenceUpdate', async (_, newPresence) => {
               break;
             }
             default: {
-              if (leagueOfLegendsPollIntervalId !== 0) {
-                if (typeof leagueOfLegendsPollIntervalId === 'number') {
-                  clearInterval(leagueOfLegendsPollIntervalId);
-                }
+              if (leagueOfLegendsPollIntervalId !== null) {
+                clearInterval(leagueOfLegendsPollIntervalId);
                 console.log('No longer in game, polling stopped...');
-                leagueOfLegendsPollIntervalId = 0;
+                leagueOfLegendsPollIntervalId = null;
               }
               break;
             }
