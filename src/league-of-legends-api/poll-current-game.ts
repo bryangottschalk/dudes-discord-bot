@@ -33,7 +33,6 @@ export const getAllGameData = async () => {
       }
     );
     setCachedGame(rootGameObject);
-    console.log('cachedGame:', cachedGame);
   } catch (err: unknown | AxiosError) {
     const ERROR_MSG = `Error occured when getting game data: ${err}`;
     console.log(ERROR_MSG);
