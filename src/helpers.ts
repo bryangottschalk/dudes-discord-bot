@@ -86,5 +86,5 @@ export const annouceUserIsStreaming = async (
 
 export const setIntervalImmediately = (func: { (): Promise<void>; (): void }, interval: number) => {
   func();
-  return window.setInterval(func, interval);
+  return setInterval(func, interval);
 };
