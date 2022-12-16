@@ -91,6 +91,7 @@ client.once('ready', async (client) => {
         ) {
           console.log('Polling game...');
           leagueOfLegendsPollIntervalId = pollCurrentGame(curChannel, audioPlayer, PATH_TO_CLIPS);
+          return;
         }
       });
     }
@@ -201,7 +202,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
 
 // Event triggered when a user's presence (e.g. status, activity, etc.) is changed.
 client.on('presenceUpdate', async (_, newPresence) => {
-  // Make sure this update is for someone present in the voice channel
+  // Make sure this update is for someone present in the same VoiceChannel as the bot
   const member = newPresence.member;
   if (
     member &&
@@ -227,7 +228,6 @@ client.on('presenceUpdate', async (_, newPresence) => {
       }
       default: {
         if (leagueOfLegendsPollIntervalId !== null) {
-          console.log('done with game');
           clearInterval(leagueOfLegendsPollIntervalId);
           console.log('No longer in game, polling stopped...');
           leagueOfLegendsPollIntervalId = null;
