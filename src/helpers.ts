@@ -7,8 +7,15 @@ import {
   createAudioResource,
   StreamType
 } from '@discordjs/voice';
-import { VoiceBasedChannel } from 'discord.js';
+import { ActivityType, Presence, VoiceBasedChannel } from 'discord.js';
 import discordTTS from 'discord-tts';
+
+export enum PresenceState {
+  IN_CHAMP_SELECT = 'In Champion Select',
+  IN_GAME = 'In Game',
+  IN_LOBBY = 'In Lobby',
+  IN_QUEUE = 'In Queue'
+}
 
 export const connectToChannel = async (channel: VoiceBasedChannel) => {
   // Create the connection to the voice channel
@@ -82,6 +89,13 @@ export const annouceUserIsStreaming = async (
     inlineVolume: true
   });
   audioPlayer.play(audioResource);
+};
+
+export const presenceIndicatesPlayingLeagueOfLegends = (presence: Presence) => {
+  const activity = presence.activities[0];
+  return (
+    activity && activity.type === ActivityType.Playing && activity.name === 'League of Legends'
+  );
 };
 
 export const setIntervalImmediately = (func: { (): Promise<void>; (): void }, interval: number) => {
