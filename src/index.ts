@@ -207,7 +207,7 @@ client.on('presenceUpdate', async (_, newPresence) => {
   if (
     member &&
     channel &&
-    member.voice.channelId == channel.id &&
+    member.voice.channelId === channel.id &&
     presenceIndicatesPlayingLeagueOfLegends(newPresence)
   ) {
     // Determine the state of the activity
