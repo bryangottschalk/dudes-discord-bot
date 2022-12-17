@@ -23,6 +23,7 @@ import {
   presenceIndicatesPlayingLeagueOfLegends
 } from './helpers';
 import { pollCurrentGame } from './league-of-legends-api/poll-current-game';
+import { BotCommands } from './types';
 
 const app = express();
 
@@ -106,10 +107,22 @@ client.on('messageCreate', async (message) => {
     channel = message.member?.voice.channel;
 
     if (channel) {
-      if (userCommand === 'cmere') {
+      if (userCommand === BotCommands.CMERE) {
         const connection = await connectToChannel(channel);
         connection?.subscribe(audioPlayer);
-      } else if (userCommand === 'gtfo') {
+
+        // Check if playing league
+        if (
+          message.member?.presence &&
+          presenceIndicatesPlayingLeagueOfLegends(message.member.presence) &&
+          message.member.presence.activities[0].state === PresenceState.IN_GAME &&
+          IS_LOL_ANNOUNCER_ENABLED
+        ) {
+          console.log('Polling game...');
+          leagueOfLegendsPollIntervalId = pollCurrentGame(channel, audioPlayer, PATH_TO_CLIPS);
+          return;
+        }
+      } else if (userCommand === BotCommands.GTFO) {
         // Stop the audio player if it's playing. This will cause the bot
         // to disconnect from the voice channel as well
         if (audioPlayer.state.status === AudioPlayerStatus.Playing) {
@@ -122,6 +135,11 @@ client.on('messageCreate', async (message) => {
           // If not playing anything, simply disconnect from the voice channel
           const connection = getVoiceConnection(channel.guild.id);
           connection?.destroy();
+        }
+        // Clear LoL interval ID if one was assigned previously
+        if (leagueOfLegendsPollIntervalId !== null) {
+          clearInterval(leagueOfLegendsPollIntervalId);
+          console.log('Polling stopped.');
         }
       } else {
         fs.readdir(PATH_TO_CLIPS, (err, files) => {
@@ -229,7 +247,7 @@ client.on('presenceUpdate', async (_, newPresence) => {
       default: {
         if (leagueOfLegendsPollIntervalId !== null) {
           clearInterval(leagueOfLegendsPollIntervalId);
-          console.log('No longer in game, polling stopped...');
+          console.log('No longer in game, polling stopped.');
           leagueOfLegendsPollIntervalId = null;
         }
         break;
