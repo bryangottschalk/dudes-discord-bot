@@ -22,7 +22,11 @@ import {
   playClip,
   presenceIndicatesPlayingLeagueOfLegends
 } from './helpers';
-import { pollCurrentGame } from './league-of-legends-api/poll-current-game';
+import {
+  pollCurrentGame,
+  setCachedEvents,
+  setCachedGame
+} from './league-of-legends-api/poll-current-game';
 import { BotCommands } from './types';
 
 const app = express();
@@ -123,6 +127,13 @@ client.on('messageCreate', async (message) => {
           return;
         }
       } else if (userCommand === BotCommands.GTFO) {
+        // Clear LoL interval ID and game data if they were assigned previously
+        if (leagueOfLegendsPollIntervalId !== null) {
+          clearInterval(leagueOfLegendsPollIntervalId);
+          console.log('Polling stopped.');
+          setCachedEvents([]);
+          setCachedGame(null);
+        }
         // Stop the audio player if it's playing. This will cause the bot
         // to disconnect from the voice channel as well
         if (audioPlayer.state.status === AudioPlayerStatus.Playing) {
@@ -135,11 +146,6 @@ client.on('messageCreate', async (message) => {
           // If not playing anything, simply disconnect from the voice channel
           const connection = getVoiceConnection(channel.guild.id);
           connection?.destroy();
-        }
-        // Clear LoL interval ID if one was assigned previously
-        if (leagueOfLegendsPollIntervalId !== null) {
-          clearInterval(leagueOfLegendsPollIntervalId);
-          console.log('Polling stopped.');
         }
       } else {
         fs.readdir(PATH_TO_CLIPS, (err, files) => {
@@ -245,9 +251,12 @@ client.on('presenceUpdate', async (_, newPresence) => {
         break;
       }
       default: {
+        // Clear LoL interval ID and game data if they were assigned previously
         if (leagueOfLegendsPollIntervalId !== null) {
           clearInterval(leagueOfLegendsPollIntervalId);
           console.log('No longer in game, polling stopped.');
+          setCachedEvents([]);
+          setCachedGame(null);
           leagueOfLegendsPollIntervalId = null;
         }
         break;
