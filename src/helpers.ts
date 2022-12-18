@@ -9,6 +9,7 @@ import {
 } from '@discordjs/voice';
 import { ActivityType, Presence, VoiceBasedChannel } from 'discord.js';
 import discordTTS from 'discord-tts';
+import { LEAGUE_OF_LEGENDS } from './constants';
 
 export enum PresenceState {
   IN_CHAMP_SELECT = 'In Champion Select',
@@ -93,9 +94,7 @@ export const annouceUserIsStreaming = async (
 
 export const presenceIndicatesPlayingLeagueOfLegends = (presence: Presence) => {
   const activity = presence.activities[0];
-  return (
-    activity && activity.type === ActivityType.Playing && activity.name === 'League of Legends'
-  );
+  return activity && activity.type === ActivityType.Playing && activity.name === LEAGUE_OF_LEGENDS;
 };
 
 export const setIntervalImmediately = (func: { (): Promise<void>; (): void }, interval: number) => {

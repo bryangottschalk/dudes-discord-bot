@@ -16,11 +16,11 @@ const httpsAgent = new https.Agent({
 let cachedEvents: Event[] = [];
 let cachedGame: RootGameObject | null = null;
 
-const setCachedEvents = (events: Event[]) => {
+export const setCachedEvents = (events: Event[]) => {
   cachedEvents = events;
 };
 
-const setCachedGame = (game: RootGameObject | null) => {
+export const setCachedGame = (game: RootGameObject | null) => {
   cachedGame = game;
 };
 
@@ -80,9 +80,11 @@ export const pollCurrentGame = (
               )?.team;
 
               if (activePlayerTeam === victimTeam) {
+                console.log('someone on your team died...');
                 // Someone on your team died
                 await playClip(`${pathToClips}bugsplat2.mp3`, channel, audioPlayer);
               } else {
+                console.log('your team killed an enemy!');
                 // Someone on enemy team died
                 await playClip(`${pathToClips}PUNCH.mp3`, channel, audioPlayer);
               }
@@ -107,15 +109,65 @@ export const pollCurrentGame = (
             }
             break;
           }
-          // case LoLClientEvent.ACE: {
-          //   console.log('ace occured!');
-          //   await playClip(
-          //     `${pathToClips}halo_unfreakinbelievable.mp3`,
-          //     channel,
-          //     audioPlayer
-          //   );
-          //   break;
-          // }
+          case LoLClientEvent.ACE: {
+            console.log('ace occured!');
+            await playClip(`${pathToClips}halo_unfreakinbelievable.mp3`, channel, audioPlayer);
+            break;
+          }
+          case LoLClientEvent.MINIONS_SPAWNING: {
+            console.log('minions spawning...');
+            await playClip(`${pathToClips}minions_laugh.mp3`, channel, audioPlayer);
+            break;
+          }
+          case LoLClientEvent.FIRST_TOWER: {
+            console.log('first turret destroyed!');
+            await playClip(`${pathToClips}illdoitagain.mp3`, channel, audioPlayer);
+            break;
+          }
+          case LoLClientEvent.TURRET_KILLED: {
+            console.log('turret killed!');
+            await playClip(`${pathToClips}illdoitagain.mp3`, channel, audioPlayer);
+            break;
+          }
+          case LoLClientEvent.INHIB_KILLED: {
+            console.log('inhib killed!');
+            await playClip(`${pathToClips}goofy_garsh.mp3`, channel, audioPlayer);
+            break;
+          }
+          case LoLClientEvent.INHIB_RESPAWNED: {
+            console.log('inhib respawned...');
+            break;
+          }
+          case LoLClientEvent.DRAGON_KILLED: {
+            if (newEvent.Stolen === 'True') {
+              console.log('dragon stolen!');
+              await playClip(`${pathToClips}steal_kims_convenience.mp3`, channel, audioPlayer);
+            } else {
+              console.log('dragon killed!');
+              await playClip(`${pathToClips}dracarys.mp3`, channel, audioPlayer);
+            }
+            break;
+          }
+          case LoLClientEvent.HERALD_KILLED: {
+            console.log('herald killed!');
+            if (newEvent.Stolen === 'True') {
+              console.log('herald stolen!');
+              await playClip(`${pathToClips}steal_kims_convenience.mp3`, channel, audioPlayer);
+            } else {
+              await playClip(`${pathToClips}goofy_garsh.mp3`, channel, audioPlayer);
+            }
+            break;
+          }
+          case LoLClientEvent.BARON_KILLED: {
+            console.log('baron killed!');
+            if (newEvent.Stolen === 'True') {
+              console.log('baron stolen!');
+              await playClip(`${pathToClips}steal_kims_convenience.mp3`, channel, audioPlayer);
+            } else {
+              await playClip(`${pathToClips}goofy_garsh.mp3`, channel, audioPlayer);
+            }
+            break;
+          }
           case LoLClientEvent.GAME_END: {
             if (newEvent?.Result === 'Win') {
               console.log('victory!');
@@ -129,7 +181,7 @@ export const pollCurrentGame = (
             break;
           }
           default: {
-            console.log('unhandled case in switch:', currentEvents);
+            console.log('unhandled event in switch:', newEvent);
             break;
           }
         }

@@ -11,7 +11,15 @@ export enum LoLClientEvent {
   CHAMPION_KILL = 'ChampionKill',
   MULTI_KILL = 'Multikill',
   ACE = 'Ace',
-  GAME_END = 'GameEnd'
+  GAME_END = 'GameEnd',
+  MINIONS_SPAWNING = 'MinionsSpawning',
+  FIRST_TOWER = 'FirstBrick',
+  TURRET_KILLED = 'TurretKilled',
+  INHIB_KILLED = 'InhibKilled',
+  DRAGON_KILLED = 'DragonKill',
+  HERALD_KILLED = 'HeraldKill',
+  BARON_KILLED = 'BaronKill',
+  INHIB_RESPAWNED = 'InhibRespawned'
 }
 
 export interface E {
