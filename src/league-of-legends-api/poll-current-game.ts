@@ -121,14 +121,17 @@ export const pollCurrentGame = (
           }
           case LoLClientEvent.FIRST_TOWER: {
             console.log('first turret destroyed!');
+            await playClip(`${pathToClips}illdoitagain.mp3`, channel, audioPlayer);
             break;
           }
           case LoLClientEvent.TURRET_KILLED: {
             console.log('turret killed!');
+            await playClip(`${pathToClips}illdoitagain.mp3`, channel, audioPlayer);
             break;
           }
           case LoLClientEvent.INHIB_KILLED: {
             console.log('inhib killed!');
+            await playClip(`${pathToClips}goofy_garsh.mp3`, channel, audioPlayer);
             break;
           }
           case LoLClientEvent.INHIB_RESPAWNED: {
@@ -146,17 +149,22 @@ export const pollCurrentGame = (
             break;
           }
           case LoLClientEvent.HERALD_KILLED: {
+            console.log('herald killed!');
             if (newEvent.Stolen === 'True') {
               console.log('herald stolen!');
               await playClip(`${pathToClips}steal_kims_convenience.mp3`, channel, audioPlayer);
+            } else {
+              await playClip(`${pathToClips}goofy_garsh.mp3`, channel, audioPlayer);
             }
-            console.log('herald killed!');
             break;
           }
           case LoLClientEvent.BARON_KILLED: {
+            console.log('baron killed!');
             if (newEvent.Stolen === 'True') {
               console.log('baron stolen!');
               await playClip(`${pathToClips}steal_kims_convenience.mp3`, channel, audioPlayer);
+            } else {
+              await playClip(`${pathToClips}goofy_garsh.mp3`, channel, audioPlayer);
             }
             break;
           }
