@@ -1,6 +1,13 @@
 import express, { Request, Response } from 'express';
 import fs from 'fs';
-import { Client, GatewayIntentBits, Partials, VoiceBasedChannel } from 'discord.js';
+import {
+  Client,
+  GatewayIntentBits,
+  GuildBasedChannel,
+  GuildMember,
+  Partials,
+  VoiceBasedChannel
+} from 'discord.js';
 import { AudioPlayerStatus, createAudioPlayer } from '@discordjs/voice';
 import {
   PresenceState,
@@ -23,6 +30,7 @@ const DISCORD_BOT_TOKEN: string = process.env.DISCORD_BOT_TOKEN || '';
 const IS_LOL_ANNOUNCER_ENABLED: boolean =
   Boolean(process.env.LEAGUE_OF_LEGENDS_ANNOUNCER_ENABLED) ?? false;
 const PATH_TO_CLIPS: string = process.env.PATH_TO_CLIPS || '';
+const GUILD_ID: string = process.env.GUILD_ID || '';
 
 // Create the bot
 const client = new Client({
@@ -63,8 +71,34 @@ audioPlayer.on('error', (error) => {
 });
 
 // Event triggered when the client becomes ready to start working
-client.once('ready', () => {
-  console.log('Ready!');
+client.once('ready', async (client) => {
+  // Get the guild this bot is in
+  const guild = await client.guilds.fetch(GUILD_ID);
+  // If the bot starts in a VoiceChannel, find out which channel it is
+  guild.channels.cache.forEach((curChannel: GuildBasedChannel) => {
+    if (curChannel.isVoiceBased() && curChannel.members.has(client.user.id)) {
+      // Set the channel this bot is in
+      channel = curChannel;
+      // Reconnect to the channel
+      connectToChannel(channel);
+      // If a member in this channel is in the middle of a LoL game and the announcer is enabled, start polling
+      channel.members.forEach((member: GuildMember) => {
+        if (
+          member.presence &&
+          presenceIndicatesPlayingLeagueOfLegends(member.presence) &&
+          member.presence.activities[0].state === PresenceState.IN_GAME &&
+          IS_LOL_ANNOUNCER_ENABLED
+        ) {
+          leagueOfLegendsPollTimer = pollCurrentGame(
+            channel as VoiceBasedChannel,
+            audioPlayer,
+            PATH_TO_CLIPS
+          );
+          return;
+        }
+      });
+    }
+  });
 });
 
 // Event triggered when a message is sent in a text channel
@@ -200,26 +234,6 @@ client.on('presenceUpdate', async (_, newPresence) => {
     }
   }
 });
-
-// Handle killing the bot
-process.on('SIGINT', async () => {
-  console.log('SIGINT');
-  disconnectFromChannel(channel);
-  await stopPlayingClip(audioPlayer);
-  stopPolling(leagueOfLegendsPollTimer);
-}); // CTRL+C
-process.on('SIGQUIT', async () => {
-  console.log('SIGQUIT');
-  disconnectFromChannel(channel);
-  await stopPlayingClip(audioPlayer);
-  stopPolling(leagueOfLegendsPollTimer);
-}); // Keyboard quit
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM');
-  disconnectFromChannel(channel);
-  await stopPlayingClip(audioPlayer);
-  stopPolling(leagueOfLegendsPollTimer);
-}); // `kill` command
 
 try {
   client.login(DISCORD_BOT_TOKEN);
