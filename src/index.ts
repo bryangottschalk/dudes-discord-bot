@@ -19,7 +19,7 @@ import {
   disconnectFromChannel,
   stopPlayingClip
 } from './helpers';
-import { pollCurrentGame, stopPolling } from './league-of-legends-api/poll-current-game';
+import { startPollingLoLGame, stopPollingLoLGame } from './league-of-legends-api/poll-current-game';
 import { BotCommands } from './types';
 
 const app = express();
@@ -62,8 +62,6 @@ const discordUserAnnouncementDictionary: { [key: string]: string } = {
 
 // The VoiceBasedChannel the bot is connected to (null if not connected)
 let channel: VoiceBasedChannel | null | undefined = null;
-// The interval ID for polling the League of Legends Live Game Client API (null if not polling)
-let leagueOfLegendsPollTimer: NodeJS.Timer | null = null;
 
 // Event triggered when there is an error with the audio player
 audioPlayer.on('error', (error) => {
@@ -89,11 +87,7 @@ client.once('ready', async (client) => {
           member.presence.activities[0].state === PresenceState.IN_GAME &&
           IS_LOL_ANNOUNCER_ENABLED
         ) {
-          leagueOfLegendsPollTimer = pollCurrentGame(
-            channel as VoiceBasedChannel,
-            audioPlayer,
-            PATH_TO_CLIPS
-          );
+          startPollingLoLGame(channel as VoiceBasedChannel, audioPlayer, PATH_TO_CLIPS);
           return;
         }
       });
@@ -120,12 +114,12 @@ client.on('messageCreate', async (message) => {
           message.member.presence.activities[0].state === PresenceState.IN_GAME &&
           IS_LOL_ANNOUNCER_ENABLED
         ) {
-          leagueOfLegendsPollTimer = pollCurrentGame(channel, audioPlayer, PATH_TO_CLIPS);
+          startPollingLoLGame(channel, audioPlayer, PATH_TO_CLIPS);
           return;
         }
       } else if (userCommand === BotCommands.GTFO) {
         // Stop polling LoL client (does nothing if not currently polling)
-        stopPolling(leagueOfLegendsPollTimer);
+        stopPollingLoLGame();
         // Stop playing a clip (does nothing if not currently playing a clip)
         await stopPlayingClip(audioPlayer);
         // Disconnect from the channel
@@ -222,13 +216,13 @@ client.on('presenceUpdate', async (_, newPresence) => {
     console.log(activity.state);
     switch (activity.state) {
       case PresenceState.IN_GAME: {
-        if (leagueOfLegendsPollTimer === null && IS_LOL_ANNOUNCER_ENABLED) {
-          leagueOfLegendsPollTimer = pollCurrentGame(channel, audioPlayer, PATH_TO_CLIPS);
+        if (IS_LOL_ANNOUNCER_ENABLED) {
+          startPollingLoLGame(channel, audioPlayer, PATH_TO_CLIPS);
         }
         break;
       }
       default: {
-        stopPolling(leagueOfLegendsPollTimer);
+        stopPollingLoLGame();
         break;
       }
     }
