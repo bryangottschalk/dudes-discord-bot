@@ -44,6 +44,7 @@ export const pollCurrentGame = (
   audioPlayer: AudioPlayer,
   pathToClips: string
 ): NodeJS.Timer => {
+  console.log('Polling game..');
   return setIntervalImmediately(async () => {
     try {
       if (!cachedGame) {
@@ -201,4 +202,14 @@ export const pollCurrentGame = (
       console.log(ERROR_MSG);
     }
   }, 200);
+};
+
+export const stopPolling = (timer: NodeJS.Timer | null) => {
+  if (timer) {
+    clearInterval(timer);
+    console.log('No longer in game, polling stopped.');
+    setCachedEvents([]);
+    setCachedGame(null);
+    timer = null;
+  }
 };

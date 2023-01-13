@@ -1,32 +1,18 @@
 import express, { Request, Response } from 'express';
 import fs from 'fs';
-import {
-  Client,
-  GatewayIntentBits,
-  GuildBasedChannel,
-  GuildMember,
-  Partials,
-  VoiceBasedChannel
-} from 'discord.js';
-import {
-  AudioPlayerStatus,
-  createAudioPlayer,
-  entersState,
-  getVoiceConnection
-} from '@discordjs/voice';
+import { Client, GatewayIntentBits, Partials, VoiceBasedChannel } from 'discord.js';
+import { AudioPlayerStatus, createAudioPlayer } from '@discordjs/voice';
 import {
   PresenceState,
   annouceUnhandledUser,
   annouceUserIsStreaming,
   connectToChannel,
   playClip,
-  presenceIndicatesPlayingLeagueOfLegends
+  presenceIndicatesPlayingLeagueOfLegends,
+  disconnectFromChannel,
+  stopPlayingClip
 } from './helpers';
-import {
-  pollCurrentGame,
-  setCachedEvents,
-  setCachedGame
-} from './league-of-legends-api/poll-current-game';
+import { pollCurrentGame, stopPolling } from './league-of-legends-api/poll-current-game';
 import { BotCommands } from './types';
 
 const app = express();
@@ -37,7 +23,6 @@ const DISCORD_BOT_TOKEN: string = process.env.DISCORD_BOT_TOKEN || '';
 const IS_LOL_ANNOUNCER_ENABLED: boolean =
   Boolean(process.env.LEAGUE_OF_LEGENDS_ANNOUNCER_ENABLED) ?? false;
 const PATH_TO_CLIPS: string = process.env.PATH_TO_CLIPS || '';
-const GUILD_ID: string = process.env.GUILD_ID || '';
 
 // Create the bot
 const client = new Client({
@@ -70,7 +55,7 @@ const discordUserAnnouncementDictionary: { [key: string]: string } = {
 // The VoiceBasedChannel the bot is connected to (null if not connected)
 let channel: VoiceBasedChannel | null | undefined = null;
 // The interval ID for polling the League of Legends Live Game Client API (null if not polling)
-let leagueOfLegendsPollIntervalId: NodeJS.Timer | null = null;
+let leagueOfLegendsPollTimer: NodeJS.Timer | null = null;
 
 // Event triggered when there is an error with the audio player
 audioPlayer.on('error', (error) => {
@@ -78,29 +63,8 @@ audioPlayer.on('error', (error) => {
 });
 
 // Event triggered when the client becomes ready to start working
-client.once('ready', async (client) => {
-  // Get the guild this bot is in
-  const guild = await client.guilds.fetch(GUILD_ID);
-  // If the bot starts in a VoiceChannel, find out which channel it is
-  guild.channels.cache.forEach((curChannel: GuildBasedChannel) => {
-    if (curChannel.isVoiceBased() && curChannel.members.has(client.user.id)) {
-      // Set the channel this bot is in
-      channel = curChannel;
-      // If a member in this channel is in the middle of a LoL game and the announcer is enabled, start polling
-      curChannel.members.forEach((member: GuildMember) => {
-        if (
-          member.presence &&
-          presenceIndicatesPlayingLeagueOfLegends(member.presence) &&
-          member.presence.activities[0].state === PresenceState.IN_GAME &&
-          IS_LOL_ANNOUNCER_ENABLED
-        ) {
-          console.log('Polling game...');
-          leagueOfLegendsPollIntervalId = pollCurrentGame(curChannel, audioPlayer, PATH_TO_CLIPS);
-          return;
-        }
-      });
-    }
-  });
+client.once('ready', () => {
+  console.log('Ready!');
 });
 
 // Event triggered when a message is sent in a text channel
@@ -122,31 +86,16 @@ client.on('messageCreate', async (message) => {
           message.member.presence.activities[0].state === PresenceState.IN_GAME &&
           IS_LOL_ANNOUNCER_ENABLED
         ) {
-          console.log('Polling game...');
-          leagueOfLegendsPollIntervalId = pollCurrentGame(channel, audioPlayer, PATH_TO_CLIPS);
+          leagueOfLegendsPollTimer = pollCurrentGame(channel, audioPlayer, PATH_TO_CLIPS);
           return;
         }
       } else if (userCommand === BotCommands.GTFO) {
-        // Clear LoL interval ID and game data if they were assigned previously
-        if (leagueOfLegendsPollIntervalId !== null) {
-          clearInterval(leagueOfLegendsPollIntervalId);
-          console.log('Polling stopped.');
-          setCachedEvents([]);
-          setCachedGame(null);
-        }
-        // Stop the audio player if it's playing. This will cause the bot
-        // to disconnect from the voice channel as well
-        if (audioPlayer.state.status === AudioPlayerStatus.Playing) {
-          audioPlayer.stop(true);
-
-          // Return when the audio player signals it's idle
-          await entersState(audioPlayer, AudioPlayerStatus.Idle, 5000);
-          return;
-        } else {
-          // If not playing anything, simply disconnect from the voice channel
-          const connection = getVoiceConnection(channel.guild.id);
-          connection?.destroy();
-        }
+        // Stop polling LoL client (does nothing if not currently polling)
+        stopPolling(leagueOfLegendsPollTimer);
+        // Stop playing a clip (does nothing if not currently playing a clip)
+        await stopPlayingClip(audioPlayer);
+        // Disconnect from the channel
+        disconnectFromChannel(channel);
       } else {
         fs.readdir(PATH_TO_CLIPS, (err, files) => {
           if (err) {
@@ -238,32 +187,39 @@ client.on('presenceUpdate', async (_, newPresence) => {
     const activity = newPresence.activities[0];
     console.log(activity.state);
     switch (activity.state) {
-      case PresenceState.IN_LOBBY:
-      case PresenceState.IN_QUEUE:
-      case PresenceState.IN_CHAMP_SELECT: {
-        break;
-      }
       case PresenceState.IN_GAME: {
-        if (leagueOfLegendsPollIntervalId === null && IS_LOL_ANNOUNCER_ENABLED) {
-          console.log('Polling game...');
-          leagueOfLegendsPollIntervalId = pollCurrentGame(channel, audioPlayer, PATH_TO_CLIPS);
+        if (leagueOfLegendsPollTimer === null && IS_LOL_ANNOUNCER_ENABLED) {
+          leagueOfLegendsPollTimer = pollCurrentGame(channel, audioPlayer, PATH_TO_CLIPS);
         }
         break;
       }
       default: {
-        // Clear LoL interval ID and game data if they were assigned previously
-        if (leagueOfLegendsPollIntervalId !== null) {
-          clearInterval(leagueOfLegendsPollIntervalId);
-          console.log('No longer in game, polling stopped.');
-          setCachedEvents([]);
-          setCachedGame(null);
-          leagueOfLegendsPollIntervalId = null;
-        }
+        stopPolling(leagueOfLegendsPollTimer);
         break;
       }
     }
   }
 });
+
+// Handle killing the bot
+process.on('SIGINT', async () => {
+  console.log('SIGINT');
+  disconnectFromChannel(channel);
+  await stopPlayingClip(audioPlayer);
+  stopPolling(leagueOfLegendsPollTimer);
+}); // CTRL+C
+process.on('SIGQUIT', async () => {
+  console.log('SIGQUIT');
+  disconnectFromChannel(channel);
+  await stopPlayingClip(audioPlayer);
+  stopPolling(leagueOfLegendsPollTimer);
+}); // Keyboard quit
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM');
+  disconnectFromChannel(channel);
+  await stopPlayingClip(audioPlayer);
+  stopPolling(leagueOfLegendsPollTimer);
+}); // `kill` command
 
 try {
   client.login(DISCORD_BOT_TOKEN);
