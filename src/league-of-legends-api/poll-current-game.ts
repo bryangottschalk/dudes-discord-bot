@@ -28,8 +28,7 @@ export const getAllGameData = async () => {
     );
     cachedGame = rootGameObject;
   } catch (err: unknown | AxiosError) {
-    const ERROR_MSG = `Error occured when getting game data: ${err}`;
-    console.log(ERROR_MSG);
+    console.log(`Error occured when getting all game data: ${err}`);
   }
 };
 
@@ -184,17 +183,7 @@ export const startPollingLoLGame = (
         }
         cachedEvents = currentEvents;
       } catch (err: unknown | AxiosError) {
-        let ERROR_MSG = '';
-        if (axios.isAxiosError(err)) {
-          if (err.cause?.message.includes('ECONNREFUSED')) {
-            ERROR_MSG =
-              'Error getting active game connection. You must be in a live game with LEAGUE_OF_LEGENDS_ANNOUNCER_ENABLED=true in your .env for this to work.';
-          }
-        }
-        if (!ERROR_MSG) {
-          ERROR_MSG = `Error occured when getting live game data: ${err}`;
-        }
-        console.log(ERROR_MSG);
+        console.log(`Error occured when getting game event data: ${err}`);
       }
     }, 200);
   }
@@ -204,9 +193,11 @@ export const stopPollingLoLGame = () => {
   // Stop polling if there is currently a valid polling timer
   if (leagueOfLegendsPollTimer) {
     clearInterval(leagueOfLegendsPollTimer);
-    console.log('No longer in game, polling stopped.');
+    console.log('Stopping polling..');
     cachedEvents = [];
     cachedGame = null;
     leagueOfLegendsPollTimer = null;
   }
 };
+
+export const isPolling = (): boolean => leagueOfLegendsPollTimer !== null;
