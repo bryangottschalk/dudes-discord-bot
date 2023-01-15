@@ -1,4 +1,5 @@
 export enum BotCommands {
   GTFO = 'gtfo',
-  CMERE = 'cmere'
+  CMERE = 'cmere',
+  POLL = 'poll'
 }

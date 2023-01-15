@@ -19,7 +19,11 @@ import {
   disconnectFromChannel,
   stopPlayingClip
 } from './helpers';
-import { startPollingLoLGame, stopPollingLoLGame } from './league-of-legends-api/poll-current-game';
+import {
+  isPolling,
+  startPollingLoLGame,
+  stopPollingLoLGame
+} from './league-of-legends-api/poll-current-game';
 import { BotCommands } from './types';
 
 const app = express();
@@ -124,6 +128,13 @@ client.on('messageCreate', async (message) => {
         await stopPlayingClip(audioPlayer);
         // Disconnect from the channel
         disconnectFromChannel(channel);
+      } else if (userCommand === BotCommands.POLL) {
+        // Stop polling if already polling. Otherwise, start polling
+        if (isPolling()) {
+          stopPollingLoLGame();
+        } else {
+          startPollingLoLGame(channel, audioPlayer, PATH_TO_CLIPS);
+        }
       } else {
         fs.readdir(PATH_TO_CLIPS, (err, files) => {
           if (err) {

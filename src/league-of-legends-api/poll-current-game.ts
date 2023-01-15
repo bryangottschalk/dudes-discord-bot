@@ -204,9 +204,13 @@ export const stopPollingLoLGame = () => {
   // Stop polling if there is currently a valid polling timer
   if (leagueOfLegendsPollTimer) {
     clearInterval(leagueOfLegendsPollTimer);
-    console.log('No longer in game, polling stopped.');
+    console.log('Stopping polling..');
     cachedEvents = [];
     cachedGame = null;
     leagueOfLegendsPollTimer = null;
   }
+};
+
+export const isPolling = (): boolean => {
+  return leagueOfLegendsPollTimer !== null;
 };
