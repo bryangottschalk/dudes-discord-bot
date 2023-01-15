@@ -5,6 +5,7 @@ import {
   AudioPlayer,
   AudioPlayerStatus,
   createAudioResource,
+  getVoiceConnection,
   StreamType
 } from '@discordjs/voice';
 import { ActivityType, Presence, VoiceBasedChannel } from 'discord.js';
@@ -35,6 +36,14 @@ export const connectToChannel = async (channel: VoiceBasedChannel) => {
   }
 };
 
+export const disconnectFromChannel = (channel: VoiceBasedChannel | null | undefined) => {
+  // If the channel is defined, kill the connection
+  if (channel) {
+    const connection = getVoiceConnection(channel.guild.id);
+    connection?.destroy();
+  }
+};
+
 export const playClip = async (
   filePathToClip: string,
   channel: VoiceBasedChannel,
@@ -52,6 +61,14 @@ export const playClip = async (
 
   // Return when the audio player signals it's playing
   return entersState(audioPlayer, AudioPlayerStatus.Playing, 5000);
+};
+
+export const stopPlayingClip = async (audioPlayer: AudioPlayer) => {
+  // Stop the audio player
+  audioPlayer.stop(true);
+
+  // Return when the audio player signals it's idle
+  await entersState(audioPlayer, AudioPlayerStatus.Idle, 5000);
 };
 
 export const annouceUnhandledUser = async (
