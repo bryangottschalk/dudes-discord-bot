@@ -5,8 +5,7 @@ import fs from 'fs';
 import { AudioPlayer } from '@discordjs/voice';
 import { Event, LoLClientEvent, RootEventsObject, RootGameObject } from './types/index';
 import https from 'https';
-import { KILL_CLIP_OPTIONS } from '../constants';
-import { PATH_TO_CLIPS } from '../';
+import { KILL_CLIP_OPTIONS, PATH_TO_CLIPS } from '../constants';
 
 const LOL_GAME_CLIENT_API = 'https://127.0.0.1:2999/liveclientdata';
 

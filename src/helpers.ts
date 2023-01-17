@@ -10,8 +10,7 @@ import {
 } from '@discordjs/voice';
 import { ActivityType, Presence, VoiceBasedChannel } from 'discord.js';
 import discordTTS from 'discord-tts';
-import { LEAGUE_OF_LEGENDS } from './constants';
-import { PATH_TO_CLIPS } from './';
+import { LEAGUE_OF_LEGENDS, PATH_TO_CLIPS } from './constants';
 
 export enum PresenceState {
   IN_CHAMP_SELECT = 'In Champion Select',
