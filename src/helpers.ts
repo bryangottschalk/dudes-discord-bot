@@ -11,6 +11,7 @@ import {
 import { ActivityType, Presence, VoiceBasedChannel } from 'discord.js';
 import discordTTS from 'discord-tts';
 import { LEAGUE_OF_LEGENDS } from './constants';
+import { PATH_TO_CLIPS } from './';
 
 export enum PresenceState {
   IN_CHAMP_SELECT = 'In Champion Select',
@@ -117,4 +118,13 @@ export const presenceIndicatesPlayingLeagueOfLegends = (presence: Presence) => {
 export const setIntervalImmediately = (func: { (): Promise<void>; (): void }, interval: number) => {
   func();
   return setInterval(func, interval);
+};
+
+export const playRandomClipFromList = async (
+  clipOptions: string[],
+  channel: VoiceBasedChannel,
+  audioPlayer: AudioPlayer
+) => {
+  const clip = clipOptions[Math.floor(Math.random() * clipOptions.length)];
+  return await playClip(`${PATH_TO_CLIPS}${clip}`, channel, audioPlayer);
 };

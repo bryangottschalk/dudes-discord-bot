@@ -33,7 +33,7 @@ const PORT = process.env.PORT || 8081;
 const DISCORD_BOT_TOKEN: string = process.env.DISCORD_BOT_TOKEN || '';
 const IS_LOL_ANNOUNCER_ENABLED: boolean =
   Boolean(process.env.LEAGUE_OF_LEGENDS_ANNOUNCER_ENABLED) ?? false;
-const PATH_TO_CLIPS: string = process.env.PATH_TO_CLIPS || '';
+export const PATH_TO_CLIPS: string = process.env.PATH_TO_CLIPS || '';
 const GUILD_ID: string = process.env.GUILD_ID || '';
 
 // Create the bot
@@ -91,7 +91,7 @@ client.once('ready', async (client) => {
           member.presence.activities[0].state === PresenceState.IN_GAME &&
           IS_LOL_ANNOUNCER_ENABLED
         ) {
-          startPollingLoLGame(channel as VoiceBasedChannel, audioPlayer, PATH_TO_CLIPS);
+          startPollingLoLGame(channel as VoiceBasedChannel, audioPlayer);
           return;
         }
       });
@@ -118,7 +118,7 @@ client.on('messageCreate', async (message) => {
           message.member.presence.activities[0].state === PresenceState.IN_GAME &&
           IS_LOL_ANNOUNCER_ENABLED
         ) {
-          startPollingLoLGame(channel, audioPlayer, PATH_TO_CLIPS);
+          startPollingLoLGame(channel, audioPlayer);
           return;
         }
       } else if (userCommand === BotCommands.GTFO) {
@@ -133,7 +133,7 @@ client.on('messageCreate', async (message) => {
         if (isPolling()) {
           stopPollingLoLGame();
         } else {
-          startPollingLoLGame(channel, audioPlayer, PATH_TO_CLIPS);
+          startPollingLoLGame(channel, audioPlayer);
         }
       } else {
         fs.readdir(PATH_TO_CLIPS, (err, files) => {
@@ -228,12 +228,11 @@ client.on('presenceUpdate', async (_, newPresence) => {
     switch (activity.state) {
       case PresenceState.IN_GAME: {
         if (IS_LOL_ANNOUNCER_ENABLED) {
-          startPollingLoLGame(channel, audioPlayer, PATH_TO_CLIPS);
+          startPollingLoLGame(channel, audioPlayer);
         }
         break;
       }
       default: {
-        stopPollingLoLGame();
         break;
       }
     }
