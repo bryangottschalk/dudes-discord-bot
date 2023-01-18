@@ -5,7 +5,14 @@ import fs from 'fs';
 import { AudioPlayer } from '@discordjs/voice';
 import { Event, LoLClientEvent, RootEventsObject, RootGameObject } from './types/index';
 import https from 'https';
-import { KILL_CLIP_OPTIONS, PATH_TO_CLIPS } from '../constants';
+import {
+  PATH_TO_CLIPS,
+  GAME_LOST_CLIP_OPTIONS,
+  GAME_START_CLIP_OPTIONS,
+  GAME_WON_CLIP_OPTIONS,
+  TEAMMATE_KILL_CLIP_OPTIONS,
+  TEAMMATE_DIED_CLIP_OPTIONS
+} from '../constants';
 
 const LOL_GAME_CLIENT_API = 'https://127.0.0.1:2999/liveclientdata';
 
@@ -51,7 +58,7 @@ export const startPollingLoLGame = (channel: VoiceBasedChannel, audioPlayer: Aud
           switch (newEvent?.EventName) {
             case LoLClientEvent.GAME_START: {
               console.log('game start!');
-              await playClip(`${PATH_TO_CLIPS}halo_slayer.mp3`, channel, audioPlayer);
+              await playRandomClipFromList(GAME_START_CLIP_OPTIONS, channel, audioPlayer);
               break;
             }
             case LoLClientEvent.FIRST_BLOOD: {
@@ -74,11 +81,11 @@ export const startPollingLoLGame = (channel: VoiceBasedChannel, audioPlayer: Aud
                 if (activePlayerTeam === victimTeam) {
                   console.log('someone on your team died...');
                   // Someone on your team died
-                  await playClip(`${PATH_TO_CLIPS}bugsplat2.mp3`, channel, audioPlayer);
+                  await playRandomClipFromList(TEAMMATE_DIED_CLIP_OPTIONS, channel, audioPlayer);
                 } else {
                   console.log('your team killed an enemy!');
                   // Someone on enemy team died
-                  await playRandomClipFromList(KILL_CLIP_OPTIONS, channel, audioPlayer);
+                  await playRandomClipFromList(TEAMMATE_KILL_CLIP_OPTIONS, channel, audioPlayer);
                 }
               } else {
                 await playClip(`${PATH_TO_CLIPS}PUNCH.mp3`, channel, audioPlayer);
@@ -167,10 +174,10 @@ export const startPollingLoLGame = (channel: VoiceBasedChannel, audioPlayer: Aud
             case LoLClientEvent.GAME_END: {
               if (newEvent?.Result === 'Win') {
                 console.log('victory!');
-                await playClip(`${PATH_TO_CLIPS}halo_victory_grunt.mp3`, channel, audioPlayer);
+                await playRandomClipFromList(GAME_WON_CLIP_OPTIONS, channel, audioPlayer);
               } else {
                 console.log('defeat!');
-                await playClip(`${PATH_TO_CLIPS}loser_spongebob.mp3`, channel, audioPlayer);
+                await playRandomClipFromList(GAME_LOST_CLIP_OPTIONS, channel, audioPlayer);
               }
               cachedEvents = [];
               cachedGame = null;
