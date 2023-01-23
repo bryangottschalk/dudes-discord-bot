@@ -36,5 +36,6 @@ export const GAME_WON_CLIP_OPTIONS: string[] = ['halo_victory_grunt.mp3', 'sweet
 
 export const GAME_LOST_CLIP_OPTIONS: string[] = [
   'loser_spongebob.mp3',
-  'smallest_violin_remix.mp3'
+  'smallest_violin_remix.mp3',
+  'mm_whatcha_say.mp3'
 ];
