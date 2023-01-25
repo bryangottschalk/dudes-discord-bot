@@ -22,7 +22,8 @@ export const TEAMMATE_DIED_CLIP_OPTIONS: string[] = [
   'bugsplat2.mp3',
   'this_guy_stinks.mp3',
   'spongebob_steel_sting.mp3',
-  'uhh-eww.mp3'
+  'uhh-eww.mp3',
+  'bruh.mp3'
 ];
 
 export const GAME_START_CLIP_OPTIONS: string[] = [
