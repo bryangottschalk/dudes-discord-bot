@@ -17,7 +17,8 @@ export const TEAMMATE_KILL_CLIP_OPTIONS: string[] = [
   'weo_BOOM.mp3',
   'who_gettin_money_this_brain.mp3',
   'OK.mp3',
-  'your_time_is_up.mp3'
+  'your_time_is_up.mp3',
+  'got-eem.mp3'
 ];
 
 export const TEAMMATE_DIED_CLIP_OPTIONS: string[] = [
@@ -58,7 +59,8 @@ export const TEAMMATE_ACE_CLIP_OPTIONS: string[] = [
   'halo_unfreakinbelievable.mp3',
   'i_like_have_fun.mp3',
   'KAZOO.mp3',
-  'twerk_like_miley.mp3'
+  'twerk_like_miley.mp3',
+  'somebody-suck-me.mp3'
 ];
 
 export const ENEMY_ACE_CLIP_OPTIONS: string[] = ['WTF.wav'];
