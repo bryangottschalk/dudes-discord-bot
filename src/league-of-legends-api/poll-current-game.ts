@@ -1,6 +1,12 @@
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { VoiceBasedChannel } from 'discord.js';
-import { playClip, playRandomClipFromList, setIntervalImmediately } from '../helpers';
+import {
+  EnemyOrAlly,
+  enemyOrAllyKilled,
+  playClip,
+  playRandomClipFromList,
+  setIntervalImmediately
+} from '../helpers';
 import fs from 'fs';
 import { AudioPlayer } from '@discordjs/voice';
 import { Event, LoLClientEvent, RootEventsObject, RootGameObject } from './types/index';
@@ -11,7 +17,11 @@ import {
   GAME_START_CLIP_OPTIONS,
   GAME_WON_CLIP_OPTIONS,
   TEAMMATE_KILL_CLIP_OPTIONS,
-  TEAMMATE_DIED_CLIP_OPTIONS
+  TEAMMATE_DIED_CLIP_OPTIONS,
+  STEAL_CLIP_OPTIONS,
+  TEAMMATE_ACE_CLIP_OPTIONS,
+  ENEMY_ACE_CLIP_OPTIONS,
+  TURRET_KILLED_CLIP_OPTIONS
 } from '../constants';
 
 const LOL_GAME_CLIENT_API = 'https://127.0.0.1:2999/liveclientdata';
@@ -68,27 +78,11 @@ export const startPollingLoLGame = (channel: VoiceBasedChannel, audioPlayer: Aud
             }
             case LoLClientEvent.CHAMPION_KILL: {
               if (cachedGame) {
-                // Determine who is on the active player's team
-                const activePlayerSummonerName = cachedGame.activePlayer.summonerName;
-                const activePlayerTeam = cachedGame.allPlayers.find(
-                  (p) => p.summonerName === activePlayerSummonerName
-                )?.team;
-                const victimSummonerName = newEvent?.VictimName;
-                const victimTeam = cachedGame.allPlayers.find(
-                  (p) => p.summonerName === victimSummonerName
-                )?.team;
-
-                if (activePlayerTeam === victimTeam) {
-                  console.log('someone on your team died...');
-                  // Someone on your team died
-                  await playRandomClipFromList(TEAMMATE_DIED_CLIP_OPTIONS, channel, audioPlayer);
-                } else {
-                  console.log('your team killed an enemy!');
-                  // Someone on enemy team died
-                  await playRandomClipFromList(TEAMMATE_KILL_CLIP_OPTIONS, channel, audioPlayer);
-                }
-              } else {
-                await playClip(`${PATH_TO_CLIPS}PUNCH.mp3`, channel, audioPlayer);
+                const whoWasKilled = enemyOrAllyKilled(cachedGame, newEvent);
+                console.log(`someone on the ${whoWasKilled} team died...`);
+                whoWasKilled === EnemyOrAlly.ALLY
+                  ? await playRandomClipFromList(TEAMMATE_DIED_CLIP_OPTIONS, channel, audioPlayer)
+                  : await playRandomClipFromList(TEAMMATE_KILL_CLIP_OPTIONS, channel, audioPlayer);
               }
               break;
             }
@@ -113,8 +107,13 @@ export const startPollingLoLGame = (channel: VoiceBasedChannel, audioPlayer: Aud
               break;
             }
             case LoLClientEvent.ACE: {
-              console.log('ace occured!');
-              await playClip(`${PATH_TO_CLIPS}halo_unfreakinbelievable.mp3`, channel, audioPlayer);
+              if (cachedGame) {
+                const whoWasKilled = enemyOrAllyKilled(cachedGame, newEvent);
+                console.log(`the ${whoWasKilled} team was aced!`);
+                whoWasKilled === EnemyOrAlly.ALLY
+                  ? await playRandomClipFromList(ENEMY_ACE_CLIP_OPTIONS, channel, audioPlayer)
+                  : await playRandomClipFromList(TEAMMATE_ACE_CLIP_OPTIONS, channel, audioPlayer);
+              }
               break;
             }
             case LoLClientEvent.MINIONS_SPAWNING: {
@@ -124,12 +123,12 @@ export const startPollingLoLGame = (channel: VoiceBasedChannel, audioPlayer: Aud
             }
             case LoLClientEvent.FIRST_TOWER: {
               console.log('first turret destroyed!');
-              await playClip(`${PATH_TO_CLIPS}illdoitagain.mp3`, channel, audioPlayer);
+              await playRandomClipFromList(TURRET_KILLED_CLIP_OPTIONS, channel, audioPlayer);
               break;
             }
             case LoLClientEvent.TURRET_KILLED: {
               console.log('turret killed!');
-              await playClip(`${PATH_TO_CLIPS}illdoitagain.mp3`, channel, audioPlayer);
+              await playRandomClipFromList(TURRET_KILLED_CLIP_OPTIONS, channel, audioPlayer);
               break;
             }
             case LoLClientEvent.INHIB_KILLED: {
@@ -144,7 +143,7 @@ export const startPollingLoLGame = (channel: VoiceBasedChannel, audioPlayer: Aud
             case LoLClientEvent.DRAGON_KILLED: {
               if (newEvent.Stolen === 'True') {
                 console.log('dragon stolen!');
-                await playClip(`${PATH_TO_CLIPS}steal_kims_convenience.mp3`, channel, audioPlayer);
+                await playRandomClipFromList(STEAL_CLIP_OPTIONS, channel, audioPlayer);
               } else {
                 console.log('dragon killed!');
                 await playClip(`${PATH_TO_CLIPS}dracarys.mp3`, channel, audioPlayer);
@@ -155,7 +154,7 @@ export const startPollingLoLGame = (channel: VoiceBasedChannel, audioPlayer: Aud
               console.log('herald killed!');
               if (newEvent.Stolen === 'True') {
                 console.log('herald stolen!');
-                await playClip(`${PATH_TO_CLIPS}steal_kims_convenience.mp3`, channel, audioPlayer);
+                await playRandomClipFromList(STEAL_CLIP_OPTIONS, channel, audioPlayer);
               } else {
                 await playClip(`${PATH_TO_CLIPS}goofy_garsh.mp3`, channel, audioPlayer);
               }
@@ -165,7 +164,7 @@ export const startPollingLoLGame = (channel: VoiceBasedChannel, audioPlayer: Aud
               console.log('baron killed!');
               if (newEvent.Stolen === 'True') {
                 console.log('baron stolen!');
-                await playClip(`${PATH_TO_CLIPS}steal_kims_convenience.mp3`, channel, audioPlayer);
+                await playRandomClipFromList(STEAL_CLIP_OPTIONS, channel, audioPlayer);
               } else {
                 await playClip(`${PATH_TO_CLIPS}goofy_garsh.mp3`, channel, audioPlayer);
               }
