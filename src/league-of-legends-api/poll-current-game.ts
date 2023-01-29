@@ -35,6 +35,7 @@ const httpsAgent = new https.Agent({
 let leagueOfLegendsPollTimer: NodeJS.Timer | null = null;
 let cachedEvents: Event[] = [];
 let cachedGame: RootGameObject | null = null;
+let activePlayerSummonerName: string, activePlayerTeam: string; // active player refers to the person running the bot
 
 export const getAllGameData = async () => {
   try {
@@ -45,6 +46,9 @@ export const getAllGameData = async () => {
       }
     );
     cachedGame = rootGameObject;
+    activePlayerSummonerName = cachedGame.activePlayer.summonerName;
+    activePlayerTeam =
+      cachedGame.allPlayers.find((p) => p.summonerName === activePlayerSummonerName)?.team ?? '';
   } catch (err: unknown | AxiosError) {
     console.log(`Error occured when getting all game data: ${err}`);
   }
@@ -78,7 +82,7 @@ export const startPollingLoLGame = (channel: VoiceBasedChannel, audioPlayer: Aud
             }
             case LoLClientEvent.CHAMPION_KILL: {
               if (cachedGame) {
-                const whoWasKilled = enemyOrAllyKilled(cachedGame, newEvent);
+                const whoWasKilled = enemyOrAllyKilled(cachedGame, newEvent, activePlayerTeam);
                 console.log(`someone on the ${whoWasKilled} team died...`);
                 whoWasKilled === EnemyOrAlly.ALLY
                   ? await playRandomClipFromList(TEAMMATE_DIED_CLIP_OPTIONS, channel, audioPlayer)
@@ -108,7 +112,7 @@ export const startPollingLoLGame = (channel: VoiceBasedChannel, audioPlayer: Aud
             }
             case LoLClientEvent.ACE: {
               if (cachedGame) {
-                const whoWasKilled = enemyOrAllyKilled(cachedGame, newEvent);
+                const whoWasKilled = enemyOrAllyKilled(cachedGame, newEvent, activePlayerTeam);
                 console.log(`the ${whoWasKilled} team was aced!`);
                 whoWasKilled === EnemyOrAlly.ALLY
                   ? await playRandomClipFromList(ENEMY_ACE_CLIP_OPTIONS, channel, audioPlayer)
@@ -205,6 +209,8 @@ export const stopPollingLoLGame = () => {
     cachedEvents = [];
     cachedGame = null;
     leagueOfLegendsPollTimer = null;
+    activePlayerSummonerName = '';
+    activePlayerTeam = '';
   }
 };
 
