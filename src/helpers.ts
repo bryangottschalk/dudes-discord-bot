@@ -11,6 +11,7 @@ import {
 import { ActivityType, Presence, VoiceBasedChannel } from 'discord.js';
 import discordTTS from 'discord-tts';
 import { LEAGUE_OF_LEGENDS, PATH_TO_CLIPS } from './constants';
+import { Event, RootGameObject } from 'league-of-legends-api/types/index';
 
 export enum PresenceState {
   IN_CHAMP_SELECT = 'In Champion Select',
@@ -126,4 +127,30 @@ export const playRandomClipFromList = async (
 ) => {
   const clip = clipOptions[Math.floor(Math.random() * clipOptions.length)];
   return await playClip(`${PATH_TO_CLIPS}${clip}`, channel, audioPlayer);
+};
+
+export enum EnemyOrAlly {
+  ENEMY = 'enemy',
+  ALLY = 'ally'
+}
+
+export enum TeamNames {
+  CHAOS = 'CHAOS',
+  ORDER = 'ORDER'
+}
+
+export const enemyOrAllyKilled = (
+  game: RootGameObject,
+  newEvent: Event,
+  activePlayerTeam: string
+): EnemyOrAlly => {
+  if (Object.prototype.hasOwnProperty.call(newEvent, 'AcingTeam')) {
+    // If the active player (person running the bot) is on the acing team, an enemy was killed last.
+    return activePlayerTeam === newEvent.AcingTeam ? EnemyOrAlly.ENEMY : EnemyOrAlly.ALLY;
+  }
+
+  const victimSummonerName = newEvent?.VictimName;
+  const victimTeam = game.allPlayers.find((p) => p.summonerName === victimSummonerName)?.team;
+
+  return activePlayerTeam === victimTeam ? EnemyOrAlly.ALLY : EnemyOrAlly.ENEMY;
 };
