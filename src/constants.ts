@@ -18,7 +18,9 @@ export const TEAMMATE_KILL_CLIP_OPTIONS: string[] = [
   'who_gettin_money_this_brain.mp3',
   'OK.mp3',
   'your_time_is_up.mp3',
-  'got-eem.mp3'
+  'got-eem.mp3',
+  'rpreplay_final1626232154.mp3',
+  `SquidwardGood.mp3`
 ];
 
 export const TEAMMATE_DIED_CLIP_OPTIONS: string[] = [
@@ -43,7 +45,8 @@ export const TURRET_KILLED_CLIP_OPTIONS: string[] = ['illdoitagain.mp3', 'OK.mp3
 export const GAME_WON_CLIP_OPTIONS: string[] = [
   'halo_victory_grunt.mp3',
   'sweet_victory.mp3',
-  'twerk_like_miley.mp3'
+  'twerk_like_miley.mp3',
+  'running.mp3'
 ];
 
 export const GAME_LOST_CLIP_OPTIONS: string[] = [
@@ -64,3 +67,9 @@ export const TEAMMATE_ACE_CLIP_OPTIONS: string[] = [
 ];
 
 export const ENEMY_ACE_CLIP_OPTIONS: string[] = ['WTF.wav'];
+
+export const DRAGON_KILLED_CLIP_OPTIONS: string[] = ['giraffe.mp3', 'dracarys.mp3'];
+
+export const HERALD_KILLED_CLIP_OPTIONS: string[] = ['giraffe.mp3', 'goofy_garsh.mp3'];
+
+export const BARON_KILLED_CLIP_OPTIONS: string[] = ['giraffe.mp3', 'goofy_garsh.mp3'];
