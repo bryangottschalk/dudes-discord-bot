@@ -20,7 +20,9 @@ export const TEAMMATE_KILL_CLIP_OPTIONS: string[] = [
   'your_time_is_up.mp3',
   'got-eem.mp3',
   'rpreplay_final1626232154.mp3',
-  `SquidwardGood.mp3`
+  `SquidwardGood.mp3`,
+  'getyofatass.mp3',
+  'muscly_arm.mp3'
 ];
 
 export const TEAMMATE_DIED_CLIP_OPTIONS: string[] = [
