@@ -24,7 +24,9 @@ import {
   TURRET_KILLED_CLIP_OPTIONS,
   DRAGON_KILLED_CLIP_OPTIONS,
   HERALD_KILLED_CLIP_OPTIONS,
-  BARON_KILLED_CLIP_OPTIONS
+  BARON_KILLED_CLIP_OPTIONS,
+  QUADRAKILL_CLIP_OPTIONS,
+  PENTAKILL_CLIP_OPTIONS
 } from '../constants';
 
 const LOL_GAME_CLIENT_API = 'https://127.0.0.1:2999/liveclientdata';
@@ -102,14 +104,10 @@ export const startPollingLoLGame = (channel: VoiceBasedChannel, audioPlayer: Aud
                 await playClip(`${PATH_TO_CLIPS}halo_triplekill.mp3`, channel, audioPlayer);
               } else if (newEvent.KillStreak === 4) {
                 console.log('quadrakill occured!');
-                await playClip(`${PATH_TO_CLIPS}halo_killtacular.mp3`, channel, audioPlayer);
+                await playRandomClipFromList(QUADRAKILL_CLIP_OPTIONS, channel, audioPlayer);
               } else if (newEvent.KillStreak === 5) {
                 console.log('pentakill occured!');
-                await playClip(
-                  `${PATH_TO_CLIPS}halo_unfreakinbelievable.mp3`,
-                  channel,
-                  audioPlayer
-                );
+                await playRandomClipFromList(PENTAKILL_CLIP_OPTIONS, channel, audioPlayer);
               }
               break;
             }
@@ -200,7 +198,7 @@ export const startPollingLoLGame = (channel: VoiceBasedChannel, audioPlayer: Aud
       } catch (err: unknown | AxiosError) {
         console.log(`Error occured when getting game event data: ${err}`);
       }
-    }, 400);
+    }, 1000);
   }
 };
 

@@ -32,8 +32,10 @@ export const connectToChannel = async (channel: VoiceBasedChannel) => {
     await entersState(connection, VoiceConnectionStatus.Ready, 5000);
     return connection;
   } catch (error) {
-    connection.destroy();
     console.log('Error:', error);
+    if (connection) {
+      connection.destroy();
+    }
   }
 };
 
@@ -41,7 +43,13 @@ export const disconnectFromChannel = (channel: VoiceBasedChannel | null | undefi
   // If the channel is defined, kill the connection
   if (channel) {
     const connection = getVoiceConnection(channel.guild.id);
-    connection?.destroy();
+    if (connection) {
+      connection.destroy();
+    } else {
+      console.log('no connection to destroy');
+    }
+  } else {
+    console.log('in the disconnectFromChannel else');
   }
 };
 
@@ -50,18 +58,22 @@ export const playClip = async (
   channel: VoiceBasedChannel,
   audioPlayer: AudioPlayer
 ) => {
-  const connection = await connectToChannel(channel);
+  try {
+    const connection = await connectToChannel(channel);
 
-  connection?.subscribe(audioPlayer);
+    connection?.subscribe(audioPlayer);
 
-  const resource = createAudioResource(filePathToClip, {
-    inputType: StreamType.Arbitrary
-  });
+    const resource = createAudioResource(filePathToClip, {
+      inputType: StreamType.Arbitrary
+    });
 
-  audioPlayer.play(resource);
+    audioPlayer.play(resource);
 
-  // Return when the audio player signals it's playing
-  return entersState(audioPlayer, AudioPlayerStatus.Playing, 5000);
+    // Return when the audio player signals it's playing
+    return entersState(audioPlayer, AudioPlayerStatus.Playing, 1000);
+  } catch (err) {
+    console.log('error playing clip:', err);
+  }
 };
 
 export const stopPlayingClip = async (audioPlayer: AudioPlayer) => {
@@ -69,7 +81,11 @@ export const stopPlayingClip = async (audioPlayer: AudioPlayer) => {
   audioPlayer.stop(true);
 
   // Return when the audio player signals it's idle
-  await entersState(audioPlayer, AudioPlayerStatus.Idle, 5000);
+  try {
+    await entersState(audioPlayer, AudioPlayerStatus.Idle, 1000);
+  } catch (err) {
+    console.log('error stopping clip:', err);
+  }
 };
 
 export const annouceUnhandledUser = async (
