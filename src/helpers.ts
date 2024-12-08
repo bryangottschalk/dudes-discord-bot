@@ -150,7 +150,7 @@ export const enemyOrAllyKilled = (
   }
 
   const victimSummonerName = newEvent?.VictimName;
-  const victimTeam = game.allPlayers.find((p) => p.summonerName === victimSummonerName)?.team;
+  const victimTeam = game.allPlayers.find((p) => p.riotIdGameName === victimSummonerName)?.team;
 
   return activePlayerTeam === victimTeam ? EnemyOrAlly.ALLY : EnemyOrAlly.ENEMY;
 };

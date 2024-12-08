@@ -219,6 +219,7 @@ export interface SummonerSpells {
 }
 
 export interface Player {
+  riotIdGameName: string;
   championName: string;
   isBot: boolean;
   isDead: boolean;
