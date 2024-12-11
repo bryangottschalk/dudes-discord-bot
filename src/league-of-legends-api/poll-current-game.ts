@@ -24,6 +24,12 @@ import {
   TURRET_KILLED_CLIP_OPTIONS
 } from '../constants';
 
+const MAX_ERRORS = 3;
+const POLL_INTERVAL = 400;
+const MAX_CACHED_EVENTS = 1000;
+const CLEANUP_INTERVAL = 60000; // 1 minute
+let errorCount = 0;
+
 const LOL_GAME_CLIENT_API = 'https://127.0.0.1:2999/liveclientdata';
 
 const httpsAgent = new https.Agent({
@@ -42,32 +48,63 @@ export const getAllGameData = async () => {
     const { data: rootGameObject }: AxiosResponse<RootGameObject> = await axios.get(
       `${LOL_GAME_CLIENT_API}/allgamedata`,
       {
-        httpsAgent
+        httpsAgent,
+        timeout: 5000
       }
     );
+
+    if (!rootGameObject?.activePlayer?.summonerName) {
+      throw new Error('Invalid game data received');
+    }
+
     cachedGame = rootGameObject;
     activePlayerSummonerName = cachedGame.activePlayer.summonerName;
     activePlayerTeam =
       cachedGame.allPlayers.find((p) => p.summonerName === activePlayerSummonerName)?.team ?? '';
+
+    if (!activePlayerTeam) {
+      throw new Error('Could not determine active player team');
+    }
   } catch (err: unknown | AxiosError) {
-    console.log(`Error occured when getting all game data: ${err}`);
+    console.log(`Error occurred when getting all game data:`, err);
+    cachedGame = null;
+    activePlayerSummonerName = '';
+    activePlayerTeam = '';
+    throw err; // Propagate error to trigger error handling in polling
+
   }
 };
+
+const cleanupStaleEvents = (currentGameTime: number) => {
+  // Only keep events from the last 5 minutes
+  const FIVE_MINUTES = 300; // in seconds
+  cachedEvents = cachedEvents.filter(event => 
+    currentGameTime - event.EventTime < FIVE_MINUTES
+  );
+};
+
 
 export const startPollingLoLGame = (channel: VoiceBasedChannel, audioPlayer: AudioPlayer) => {
   if (leagueOfLegendsPollTimer === null) {
     console.log('Polling game..');
+    errorCount = 0;
     leagueOfLegendsPollTimer = setIntervalImmediately(async () => {
       try {
         if (!cachedGame) {
-          getAllGameData();
+          await getAllGameData();
+          if (!cachedGame) throw new Error('Failed to get initial game data');
         }
         const {
           data: { Events: currentEvents }
         }: AxiosResponse<RootEventsObject> = await axios.get(`${LOL_GAME_CLIENT_API}/eventdata`, {
-          httpsAgent
+          httpsAgent,
+          timeout: 5000
         });
+
+        errorCount = 0;
+
         if (currentEvents.length > cachedEvents.length) {
+          cleanupStaleEvents(currentEvents[currentEvents.length - 1].EventTime);
           const newEvent = currentEvents[currentEvents.length - 1];
           switch (newEvent?.EventName) {
             case LoLClientEvent.GAME_START: {
@@ -92,21 +129,17 @@ export const startPollingLoLGame = (channel: VoiceBasedChannel, audioPlayer: Aud
             }
             case LoLClientEvent.MULTI_KILL: {
               if (newEvent.KillStreak === 2) {
-                console.log('doublekill occured!');
+                console.log('doublekill occurred!');
                 await playClip(`${PATH_TO_CLIPS}halo_doublekill.mp3`, channel, audioPlayer);
               } else if (newEvent.KillStreak === 3) {
-                console.log('triplekill occured!');
+                console.log('triplekill occurred!');
                 await playClip(`${PATH_TO_CLIPS}halo_triplekill.mp3`, channel, audioPlayer);
               } else if (newEvent.KillStreak === 4) {
-                console.log('quadrakill occured!');
+                console.log('quadrakill occurred!');
                 await playClip(`${PATH_TO_CLIPS}halo_killtacular.mp3`, channel, audioPlayer);
               } else if (newEvent.KillStreak === 5) {
-                console.log('pentakill occured!');
-                await playClip(
-                  `${PATH_TO_CLIPS}halo_unfreakinbelievable.mp3`,
-                  channel,
-                  audioPlayer
-                );
+                console.log('pentakill occurred!');
+                await playClip(`${PATH_TO_CLIPS}halo_unfreakinbelievable.mp3`, channel, audioPlayer);
               }
               break;
             }
@@ -195,9 +228,16 @@ export const startPollingLoLGame = (channel: VoiceBasedChannel, audioPlayer: Aud
         }
         cachedEvents = currentEvents;
       } catch (err: unknown | AxiosError) {
+        errorCount++;
         console.log(`Error occured when getting game event data: ${err}`);
+
+        if (errorCount >= MAX_ERRORS) {
+          console.log('Too many errors occurred, stopping polling');
+          stopPollingLoLGame();
+          return;
+        }
       }
-    }, 400);
+    }, POLL_INTERVAL);
   }
 };
 
@@ -206,11 +246,19 @@ export const stopPollingLoLGame = () => {
   if (leagueOfLegendsPollTimer) {
     clearInterval(leagueOfLegendsPollTimer);
     console.log('Stopping polling..');
+    
+    // Reset all state
     cachedEvents = [];
     cachedGame = null;
     leagueOfLegendsPollTimer = null;
     activePlayerSummonerName = '';
     activePlayerTeam = '';
+    errorCount = 0;
+    
+    // Force garbage collection of any remaining resources
+    if (global.gc) {
+      global.gc();
+    }
   }
 };
 

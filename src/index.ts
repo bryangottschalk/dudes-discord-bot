@@ -35,6 +35,24 @@ import {
 
 const app = express();
 
+process.on('SIGINT', () => {
+  console.log('Received SIGINT. Cleaning up...');
+  stopPollingLoLGame();
+  process.exit(0);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.log('Unhandled Rejection at:', promise, 'reason:', reason);
+  stopPollingLoLGame();
+});
+
+process.on('uncaughtException', (error) => {
+  console.log('Uncaught Exception:', error);
+  stopPollingLoLGame();
+  process.exit(1);
+});
+
+
 // Create the bot
 const client = new Client({
   intents: [
@@ -227,7 +245,7 @@ client.on('presenceUpdate', async (_, newPresence) => {
     switch (activity.state) {
       case PresenceState.IN_GAME: {
         if (IS_LOL_ANNOUNCER_ENABLED) {
-          startPollingLoLGame(channel, audioPlayer);
+          await startPollingLoLGame(channel, audioPlayer);
         }
         break;
       }
@@ -235,6 +253,9 @@ client.on('presenceUpdate', async (_, newPresence) => {
         break;
       }
     }
+  } catch (err) {
+    console.error('Error in presence update handler:', err);
+    stopPollingLoLGame();  // Cleanup on error
   }
 });
 
@@ -250,4 +271,10 @@ app.get('/', (_: Request, res: Response): void => {
 
 app.listen(PORT, (): void => {
   console.log(`app running on port ${PORT}`);
+});
+
+
+client.on('destroy', () => {
+  console.log('Discord client being destroyed. Cleaning up...');
+  stopPollingLoLGame();
 });
