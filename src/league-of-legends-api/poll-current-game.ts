@@ -26,8 +26,6 @@ import {
 
 const MAX_ERRORS = 3;
 const POLL_INTERVAL = 400;
-const MAX_CACHED_EVENTS = 1000;
-const CLEANUP_INTERVAL = 60000; // 1 minute
 let errorCount = 0;
 
 const LOL_GAME_CLIENT_API = 'https://127.0.0.1:2999/liveclientdata';
@@ -71,18 +69,14 @@ export const getAllGameData = async () => {
     activePlayerSummonerName = '';
     activePlayerTeam = '';
     throw err; // Propagate error to trigger error handling in polling
-
   }
 };
 
 const cleanupStaleEvents = (currentGameTime: number) => {
   // Only keep events from the last 5 minutes
   const FIVE_MINUTES = 300; // in seconds
-  cachedEvents = cachedEvents.filter(event => 
-    currentGameTime - event.EventTime < FIVE_MINUTES
-  );
+  cachedEvents = cachedEvents.filter((event) => currentGameTime - event.EventTime < FIVE_MINUTES);
 };
-
 
 export const startPollingLoLGame = (channel: VoiceBasedChannel, audioPlayer: AudioPlayer) => {
   if (leagueOfLegendsPollTimer === null) {
@@ -139,7 +133,11 @@ export const startPollingLoLGame = (channel: VoiceBasedChannel, audioPlayer: Aud
                 await playClip(`${PATH_TO_CLIPS}halo_killtacular.mp3`, channel, audioPlayer);
               } else if (newEvent.KillStreak === 5) {
                 console.log('pentakill occurred!');
-                await playClip(`${PATH_TO_CLIPS}halo_unfreakinbelievable.mp3`, channel, audioPlayer);
+                await playClip(
+                  `${PATH_TO_CLIPS}halo_unfreakinbelievable.mp3`,
+                  channel,
+                  audioPlayer
+                );
               }
               break;
             }
@@ -246,7 +244,7 @@ export const stopPollingLoLGame = () => {
   if (leagueOfLegendsPollTimer) {
     clearInterval(leagueOfLegendsPollTimer);
     console.log('Stopping polling..');
-    
+
     // Reset all state
     cachedEvents = [];
     cachedGame = null;
@@ -254,7 +252,7 @@ export const stopPollingLoLGame = () => {
     activePlayerSummonerName = '';
     activePlayerTeam = '';
     errorCount = 0;
-    
+
     // Force garbage collection of any remaining resources
     if (global.gc) {
       global.gc();

@@ -52,7 +52,6 @@ process.on('uncaughtException', (error) => {
   process.exit(1);
 });
 
-
 // Create the bot
 const client = new Client({
   intents: [
@@ -231,31 +230,33 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
 
 // Event triggered when a user's presence (e.g. status, activity, etc.) is changed.
 client.on('presenceUpdate', async (_, newPresence) => {
-  // Make sure this update is for someone present in the same VoiceChannel as the bot
-  const member = newPresence.member;
-  if (
-    member &&
-    channel &&
-    member.voice.channelId === channel.id &&
-    presenceIndicatesPlayingLeagueOfLegends(newPresence)
-  ) {
-    // Determine the state of the activity
-    const activity = newPresence.activities[0];
-    console.log(activity.state);
-    switch (activity.state) {
-      case PresenceState.IN_GAME: {
-        if (IS_LOL_ANNOUNCER_ENABLED) {
-          await startPollingLoLGame(channel, audioPlayer);
+  try {
+    // Make sure this update is for someone present in the same VoiceChannel as the bot
+    const member = newPresence.member;
+    if (
+      member &&
+      channel &&
+      member.voice.channelId === channel.id &&
+      presenceIndicatesPlayingLeagueOfLegends(newPresence)
+    ) {
+      // Determine the state of the activity
+      const activity = newPresence.activities[0];
+      console.log(activity.state);
+      switch (activity.state) {
+        case PresenceState.IN_GAME: {
+          if (IS_LOL_ANNOUNCER_ENABLED) {
+            await startPollingLoLGame(channel, audioPlayer);
+          }
+          break;
         }
-        break;
-      }
-      default: {
-        break;
+        default: {
+          break;
+        }
       }
     }
   } catch (err) {
     console.error('Error in presence update handler:', err);
-    stopPollingLoLGame();  // Cleanup on error
+    stopPollingLoLGame(); // Cleanup on error
   }
 });
 
@@ -272,7 +273,6 @@ app.get('/', (_: Request, res: Response): void => {
 app.listen(PORT, (): void => {
   console.log(`app running on port ${PORT}`);
 });
-
 
 client.on('destroy', () => {
   console.log('Discord client being destroyed. Cleaning up...');
