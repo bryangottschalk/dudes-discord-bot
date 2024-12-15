@@ -21,7 +21,12 @@ import {
   STEAL_CLIP_OPTIONS,
   TEAMMATE_ACE_CLIP_OPTIONS,
   ENEMY_ACE_CLIP_OPTIONS,
-  TURRET_KILLED_CLIP_OPTIONS
+  TURRET_KILLED_CLIP_OPTIONS,
+  DRAGON_KILLED_CLIP_OPTIONS,
+  HERALD_KILLED_CLIP_OPTIONS,
+  BARON_KILLED_CLIP_OPTIONS,
+  QUADRAKILL_CLIP_OPTIONS,
+  PENTAKILL_CLIP_OPTIONS
 } from '../constants';
 
 const LOL_GAME_CLIENT_API = 'https://127.0.0.1:2999/liveclientdata';
@@ -99,14 +104,10 @@ export const startPollingLoLGame = (channel: VoiceBasedChannel, audioPlayer: Aud
                 await playClip(`${PATH_TO_CLIPS}halo_triplekill.mp3`, channel, audioPlayer);
               } else if (newEvent.KillStreak === 4) {
                 console.log('quadrakill occured!');
-                await playClip(`${PATH_TO_CLIPS}halo_killtacular.mp3`, channel, audioPlayer);
+                await playRandomClipFromList(QUADRAKILL_CLIP_OPTIONS, channel, audioPlayer);
               } else if (newEvent.KillStreak === 5) {
                 console.log('pentakill occured!');
-                await playClip(
-                  `${PATH_TO_CLIPS}halo_unfreakinbelievable.mp3`,
-                  channel,
-                  audioPlayer
-                );
+                await playRandomClipFromList(PENTAKILL_CLIP_OPTIONS, channel, audioPlayer);
               }
               break;
             }
@@ -150,7 +151,7 @@ export const startPollingLoLGame = (channel: VoiceBasedChannel, audioPlayer: Aud
                 await playRandomClipFromList(STEAL_CLIP_OPTIONS, channel, audioPlayer);
               } else {
                 console.log('dragon killed!');
-                await playClip(`${PATH_TO_CLIPS}dracarys.mp3`, channel, audioPlayer);
+                await playRandomClipFromList(DRAGON_KILLED_CLIP_OPTIONS, channel, audioPlayer);
               }
               break;
             }
@@ -160,7 +161,7 @@ export const startPollingLoLGame = (channel: VoiceBasedChannel, audioPlayer: Aud
                 console.log('herald stolen!');
                 await playRandomClipFromList(STEAL_CLIP_OPTIONS, channel, audioPlayer);
               } else {
-                await playClip(`${PATH_TO_CLIPS}goofy_garsh.mp3`, channel, audioPlayer);
+                await playRandomClipFromList(HERALD_KILLED_CLIP_OPTIONS, channel, audioPlayer);
               }
               break;
             }
@@ -173,7 +174,7 @@ export const startPollingLoLGame = (channel: VoiceBasedChannel, audioPlayer: Aud
                 console.log('baron stolen!');
                 await playRandomClipFromList(STEAL_CLIP_OPTIONS, channel, audioPlayer);
               } else {
-                await playClip(`${PATH_TO_CLIPS}goofy_garsh.mp3`, channel, audioPlayer);
+                await playRandomClipFromList(BARON_KILLED_CLIP_OPTIONS, channel, audioPlayer);
               }
               break;
             }
@@ -200,7 +201,7 @@ export const startPollingLoLGame = (channel: VoiceBasedChannel, audioPlayer: Aud
       } catch (err: unknown | AxiosError) {
         console.log(`Error occured when getting game event data: ${err}`);
       }
-    }, 400);
+    }, 1000);
   }
 };
 
