@@ -81,9 +81,7 @@ export const annouceUnhandledUser = async (
 
   connection?.subscribe(audioPlayer);
 
-  const stream = discordTTS.getVoiceStream(
-    `Aww shit we got ${username} up in here. That's a big ass guy!`
-  );
+  const stream = discordTTS.getVoiceStream(`Welcome ${username}. That's a big ass guy!`);
 
   const audioResource = createAudioResource(stream, {
     inputType: StreamType.Arbitrary,
@@ -101,7 +99,7 @@ export const annouceUserIsStreaming = async (
 
   connection?.subscribe(audioPlayer);
 
-  const stream = discordTTS.getVoiceStream(`${username} is streaming! Can I get a hoy yah?`);
+  const stream = discordTTS.getVoiceStream(`${username} is streaming! Come watch them feed.`);
 
   const audioResource = createAudioResource(stream, {
     inputType: StreamType.Arbitrary,

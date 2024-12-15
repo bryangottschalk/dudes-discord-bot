@@ -53,14 +53,14 @@ const botUsernames: string[] = ['Big Announcer Dude#0867', 'dpr-DiscoBot#6636'];
 // Create the announcement dictionary
 const discordUserAnnouncementDictionary: { [key: string]: string } = {
   'kyhole#3631': 'shutUpKyle.mp3',
-  'robborg#4693': 'RobbieHasArrived.mp3',
-  'Jenkinz94#4030': 'NickHasArrived.mp3',
-  'mr.barron#9498': 'AlexHasArrived.mp3',
-  'Snapps#5034': 'SAMMMMM.mp3',
-  'bryborg#3434': 'thebryansong.mp3',
-  'Dru#7852': 'Dr_Dru_v2.mp3',
-  'lKoNFlicTl#3922': 'and-his-name-is-patrick.mp3',
-  'NutDragSwag#0374': 'alexander_the_great.mp3'
+  robborg: 'RobbieHasArrived.mp3',
+  jenkinz94: 'NickHasArrived.mp3',
+  'mr.barron_': 'AlexHasArrived.mp3',
+  _snapps: 'SAMMMMM.mp3',
+  'bryborg.': 'thebryansong.mp3',
+  druborg: 'Dr_Dru_v2.mp3',
+  lkonflictl: 'and-his-name-is-patrick.mp3',
+  nutdragswag: 'alexander_the_great.mp3'
 };
 
 // The VoiceBasedChannel the bot is connected to (null if not connected)
@@ -162,7 +162,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     if (channel) {
       // Grab the username of the user who joined
       const username = newState?.member?.user.tag as string;
-      const usernameNoHash = username.slice(0, username.length - 5);
+      const usernameNoHash = username?.split('#')[0] ?? '';
       if (!oldState.streaming && newState.streaming) {
         annouceUserIsStreaming(channel, audioPlayer, usernameNoHash);
       }
@@ -183,9 +183,9 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
         (isJoiningChannel || isSwitchingChannel)
       ) {
         // Play a clip based on the username
-        if (discordUserAnnouncementDictionary[username]) {
+        if (discordUserAnnouncementDictionary[usernameNoHash]) {
           playClip(
-            `${PATH_TO_CLIPS}${discordUserAnnouncementDictionary[username]}`,
+            `${PATH_TO_CLIPS}${discordUserAnnouncementDictionary[usernameNoHash]}`,
             channel,
             audioPlayer
           );
