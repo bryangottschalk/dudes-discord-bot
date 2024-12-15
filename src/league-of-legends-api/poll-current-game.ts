@@ -32,7 +32,7 @@ const httpsAgent = new https.Agent({
 });
 
 // The interval ID for polling the League of Legends Live Game Client API (null if not polling)
-let leagueOfLegendsPollTimer: NodeJS.Timer | null = null;
+let leagueOfLegendsPollTimer: NodeJS.Timeout | null = null;
 let cachedEvents: Event[] = [];
 let cachedGame: RootGameObject | null = null;
 let activePlayerSummonerName: string, activePlayerTeam: string; // active player refers to the person running the bot
