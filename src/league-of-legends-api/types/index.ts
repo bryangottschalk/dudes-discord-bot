@@ -19,7 +19,8 @@ export enum LoLClientEvent {
   DRAGON_KILLED = 'DragonKill',
   HERALD_KILLED = 'HeraldKill',
   BARON_KILLED = 'BaronKill',
-  INHIB_RESPAWNED = 'InhibRespawned'
+  INHIB_RESPAWNED = 'InhibRespawned',
+  VOIDGRUB_KILLED = 'HordeKill'
 }
 
 export interface E {

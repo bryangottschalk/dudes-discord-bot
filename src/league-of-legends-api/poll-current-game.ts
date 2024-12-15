@@ -164,6 +164,9 @@ export const startPollingLoLGame = (channel: VoiceBasedChannel, audioPlayer: Aud
               }
               break;
             }
+            case LoLClientEvent.VOIDGRUB_KILLED: {
+              await playClip(`${PATH_TO_CLIPS}bugsplat2.mp3`, channel, audioPlayer);
+            }
             case LoLClientEvent.BARON_KILLED: {
               console.log('baron killed!');
               if (newEvent.Stolen === 'True') {
