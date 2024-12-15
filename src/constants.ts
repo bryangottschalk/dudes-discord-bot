@@ -11,8 +11,16 @@ export const LEAGUE_OF_LEGENDS = 'League of Legends';
 
 // Clip options for playRandomClipFromList to handle
 export const TEAMMATE_KILL_CLIP_OPTIONS: string[] = [
+  'got-eem.mp3',
+  'rpreplay_final1626232154.mp3',
+  `SquidwardGood.mp3`,
+  'getyo.mp3',
+  'muscly_arm.mp3',
+  'corner_three_short.mp3',
+  'anime.mp3',
   'PUNCH.mp3',
   'shotgun-firing.mp3',
+  'boutta.mp3',
   'bye_im_paul.mp3',
   'weo_BOOM.mp3',
   'who_gettin_money_this_brain.mp3',
@@ -26,7 +34,10 @@ export const TEAMMATE_DIED_CLIP_OPTIONS: string[] = [
   'this_guy_stinks.mp3',
   'spongebob_steel_sting.mp3',
   'uhh-eww.mp3',
-  'bruh.mp3'
+  'bruh.mp3',
+  'myleg.mp3',
+  'orbofconfusion.mp3',
+  'owch.mp3'
 ];
 
 export const GAME_START_CLIP_OPTIONS: string[] = [
