@@ -1,5 +1,4 @@
 import express, { Request, Response } from 'express';
-import fs from 'fs';
 import {
   Client,
   GatewayIntentBits,
@@ -11,13 +10,15 @@ import {
 import { AudioPlayerStatus, createAudioPlayer } from '@discordjs/voice';
 import {
   PresenceState,
-  annouceUnhandledUser,
+  // announceUnhandledUser,
   annouceUserIsStreaming,
   connectToChannel,
   playClip,
   presenceIndicatesPlayingLeagueOfLegends,
   disconnectFromChannel,
-  stopPlayingClip
+  stopPlayingClip,
+  findClipRecursively,
+  playRandomClipFromFolder
 } from './helpers';
 import {
   isPolling,
@@ -30,7 +31,8 @@ import {
   DISCORD_BOT_TOKEN,
   IS_LOL_ANNOUNCER_ENABLED,
   PATH_TO_CLIPS,
-  GUILD_ID
+  GUILD_ID,
+  EventFiles
 } from './constants';
 
 const app = express();
@@ -50,18 +52,6 @@ const client = new Client({
 const audioPlayer = createAudioPlayer();
 // Create the array of bot usernames
 const botUsernames: string[] = ['Big Announcer Dude#0867', 'dpr-DiscoBot#6636'];
-// Create the announcement dictionary
-const discordUserAnnouncementDictionary: { [key: string]: string } = {
-  'kyhole#3631': 'shutUpKyle.mp3',
-  robborg: 'RobbieHasArrived.mp3',
-  jenkinz94: 'NickHasArrived.mp3',
-  'mr.barron_': 'AlexHasArrived.mp3',
-  _snapps: 'SAMMMMM.mp3',
-  'bryborg.': 'thebryansong.mp3',
-  druborg: 'Dr_Dru_v2.mp3',
-  lkonflictl: 'and-his-name-is-patrick.mp3',
-  nutdragswag: 'alexander_the_great.mp3'
-};
 
 // The VoiceBasedChannel the bot is connected to (null if not connected)
 let channel: VoiceBasedChannel | null | undefined = null;
@@ -135,17 +125,14 @@ client.on('messageCreate', async (message) => {
           startPollingLoLGame(channel, audioPlayer);
         }
       } else {
-        fs.readdir(PATH_TO_CLIPS, (err, files) => {
-          if (err) {
-            console.log(err);
-          } else {
-            files.forEach((file) => {
-              if (file.split('.')[0].toLowerCase() === userCommand) {
-                playClip(`${PATH_TO_CLIPS}${file}`, channel as VoiceBasedChannel, audioPlayer);
-              }
-            });
-          }
-        });
+        const clip = findClipRecursively(PATH_TO_CLIPS, userCommand);
+
+        // If the clip was found, play it.
+        if (clip) {
+          playClip(clip, channel as VoiceBasedChannel, audioPlayer);
+        } else {
+          console.log('command ' + userCommand + ' not found.');
+        }
       }
     }
   }
@@ -154,59 +141,60 @@ client.on('messageCreate', async (message) => {
 // Event triggered when a user changes voice state - e.g. joins/leaves a channel, mutes/unmutes, etc.
 client.on('voiceStateUpdate', async (oldState, newState) => {
   // Only process if the audio player currently is idle
-  if (audioPlayer.state.status === AudioPlayerStatus.Idle) {
-    // User joins channel.
+  if (audioPlayer.state.status !== AudioPlayerStatus.Idle) {
+    return;
+  }
 
-    // Set the channel for the bot to join
-    channel = newState.channel;
-    if (channel) {
-      // Grab the username of the user who joined
-      const username = newState?.member?.user.tag as string;
-      const usernameNoHash = username?.split('#')[0] ?? '';
-      if (!oldState.streaming && newState.streaming) {
-        annouceUserIsStreaming(channel, audioPlayer, usernameNoHash);
-      }
-      // The voiceStateUpdate callback is triggered for a variety of reasons, but we only care about some of them for intros.
-      const DONT_INTRO = [
-        (oldState.streaming && !newState.streaming) || (!oldState.streaming && newState.streaming),
-        (oldState.selfDeaf && !newState.selfDeaf) || (!oldState.selfDeaf && newState.selfDeaf),
-        (oldState.selfMute && !newState.selfMute) || (!oldState.selfMute && newState.selfMute),
-        (oldState.serverDeaf && !newState.serverDeaf) ||
-          (!oldState.serverDeaf && newState.serverDeaf),
-        (oldState.serverMute && !newState.serverMute) ||
-          (!oldState.serverMute && newState.serverMute)
-      ];
-      const isSwitchingChannel = Boolean(oldState.channel && newState.channel);
-      const isJoiningChannel = oldState.channel === null && newState.channel !== null;
-      if (
-        DONT_INTRO.every((condition) => condition === false) &&
-        (isJoiningChannel || isSwitchingChannel)
-      ) {
-        // Play a clip based on the username
-        if (discordUserAnnouncementDictionary[usernameNoHash]) {
-          playClip(
-            `${PATH_TO_CLIPS}${discordUserAnnouncementDictionary[usernameNoHash]}`,
-            channel,
-            audioPlayer
-          );
-        } else {
-          if (!botUsernames.includes(username)) {
-            console.log('Unhandled user joined a voice channel. Announcing...');
-            annouceUnhandledUser(channel, audioPlayer, usernameNoHash);
-          }
+  // Set the channel for the bot to join
+  channel = newState.channel;
+  if (channel) {
+    // Grab the username of the user who joined
+    const username = newState?.member?.user.tag as string;
+    const usernameNoHash = username?.split('#')[0] ?? '';
+    if (!oldState.streaming && newState.streaming) {
+      annouceUserIsStreaming(channel, audioPlayer, usernameNoHash);
+    }
+    // The voiceStateUpdate callback is triggered for a variety of reasons, but we only care about some of them for intros.
+    const DONT_INTRO = [
+      (oldState.streaming && !newState.streaming) || (!oldState.streaming && newState.streaming),
+      (oldState.selfDeaf && !newState.selfDeaf) || (!oldState.selfDeaf && newState.selfDeaf),
+      (oldState.selfMute && !newState.selfMute) || (!oldState.selfMute && newState.selfMute),
+      (oldState.serverDeaf && !newState.serverDeaf) ||
+        (!oldState.serverDeaf && newState.serverDeaf),
+      (oldState.serverMute && !newState.serverMute) || (!oldState.serverMute && newState.serverMute)
+    ];
+    const isSwitchingChannel = Boolean(oldState.channel && newState.channel);
+    const isJoiningChannel = oldState.channel === null && newState.channel !== null;
+    if (
+      DONT_INTRO.every((condition) => condition === false) &&
+      (isJoiningChannel || isSwitchingChannel)
+    ) {
+      // Look for a folder for the user. If there is one, play a random clip from it.
+      if (!botUsernames.includes(username)) {
+        const success = await playRandomClipFromFolder(
+          `${EventFiles.DIS_USER_ENTER}${usernameNoHash}`,
+          channel,
+          audioPlayer
+        );
+
+        // If no clip was found, announce the user using TTS.
+        if (!success) {
+          console.log('Unhandled user joined a voice channel. Announcing...');
+          // TODO: this broke, think something got screwed up here with dependency updates looking at error.
+          // await announceUnhandledUser(channel, audioPlayer, usernameNoHash);
         }
       }
-      // User (not a bot) exits channel with users still in it
-      else if (
-        oldState.channel !== null &&
-        newState.channel === null &&
-        !oldState?.member?.user.bot &&
-        oldState.channel.members.size !== 0 // don't bother playing if no one is still in the channel
-      ) {
-        // Bot will join the channel the user left
-        channel = oldState.channel;
-        await playClip(`${PATH_TO_CLIPS}seeyalata.mp3`, channel, audioPlayer);
-      }
+    }
+    // User (not a bot) exits channel with users still in it
+    else if (
+      oldState.channel !== null &&
+      newState.channel === null &&
+      !oldState?.member?.user.bot &&
+      oldState.channel.members.size !== 0 // don't bother playing if no one is still in the channel
+    ) {
+      // Bot will join the channel the user left
+      channel = oldState.channel;
+      await playRandomClipFromFolder(EventFiles.DIS_USER_LEAVE, channel, audioPlayer);
     }
   }
 });

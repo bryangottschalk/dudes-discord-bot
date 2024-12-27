@@ -9,69 +9,31 @@ export const GUILD_ID: string = process.env.GUILD_ID || '';
 // Simple constant strings for comparison logic
 export const LEAGUE_OF_LEGENDS = 'League of Legends';
 
-// Clip options for playRandomClipFromList to handle
-export const TEAMMATE_KILL_CLIP_OPTIONS: string[] = [
-  'got-eem.mp3',
-  'rpreplay_final1626232154.mp3',
-  `SquidwardGood.mp3`,
-  'getyo.mp3',
-  'muscly_arm.mp3',
-  'corner_three_short.mp3',
-  'anime.mp3',
-  'PUNCH.mp3',
-  'shotgun-firing.mp3',
-  'boutta.mp3',
-  'bye_im_paul.mp3',
-  'weo_BOOM.mp3',
-  'who_gettin_money_this_brain.mp3',
-  'OK.mp3',
-  'your_time_is_up.mp3',
-  'got-eem.mp3'
-];
-
-export const TEAMMATE_DIED_CLIP_OPTIONS: string[] = [
-  'bugsplat2.mp3',
-  'this_guy_stinks.mp3',
-  'spongebob_steel_sting.mp3',
-  'uhh-eww.mp3',
-  'bruh.mp3',
-  'myleg.mp3',
-  'orbofconfusion.mp3',
-  'owch.mp3'
-];
-
-export const GAME_START_CLIP_OPTIONS: string[] = [
-  'halo_slayer.mp3',
-  'halo_assault.mp3',
-  'halo_king_of_the_hill.mp3',
-  'halo_capture_the_flag.mp3',
-  'halo_oddball.mp3',
-  'goo_lagoon.mp3'
-];
-
-export const TURRET_KILLED_CLIP_OPTIONS: string[] = ['illdoitagain.mp3', 'OK.mp3'];
-
-export const GAME_WON_CLIP_OPTIONS: string[] = [
-  'halo_victory_grunt.mp3',
-  'sweet_victory.mp3',
-  'twerk_like_miley.mp3'
-];
-
-export const GAME_LOST_CLIP_OPTIONS: string[] = [
-  'loser_spongebob.mp3',
-  'smallest_violin_remix.mp3',
-  'mm_whatcha_say.mp3'
-];
-
-export const STEAL_CLIP_OPTIONS: string[] = ['you_can_have_it.mp3', 'steal_kims_convenience.mp3'];
-
-export const TEAMMATE_ACE_CLIP_OPTIONS: string[] = [
-  'goo_lagoon.mp3',
-  'halo_unfreakinbelievable.mp3',
-  'i_like_have_fun.mp3',
-  'KAZOO.mp3',
-  'twerk_like_miley.mp3',
-  'somebody-suck-me.mp3'
-];
-
-export const ENEMY_ACE_CLIP_OPTIONS: string[] = ['WTF.wav'];
+export enum EventFiles {
+  DIS_USER_ENTER = 'events/discord/channel/enter/',
+  DIS_USER_LEAVE = 'events/discord/channel/leave/',
+  DIS_USER_START_STREAM = 'events/discord/stream/start/',
+  DIS_USER_END_STREAM = 'events/discord/stream/end/',
+  LOL_GAME_START = 'events/league/game/start/',
+  LOL_GAME_WON = 'events/league/game/end/win/',
+  LOL_GAME_LOSS = 'events/league/game/end/loss/',
+  LOL_MINIONS_SPAWNING = 'events/league/game/minions/',
+  LOL_FIRST_BLOOD = 'events/league/kill/first/',
+  LOL_TEAM_KILL = 'events/league/kill/team/',
+  LOL_ENEMY_KILL = 'events/league/kill/enemy/',
+  LOL_DOUBLE_KILL = 'events/league/kill/team/multi/double',
+  LOL_TRIPLE_KILL = 'events/league/kill/team/multi/triple',
+  LOL_QUADRA_KILL = 'events/league/kill/team/multi/quadra',
+  LOL_PENTA_KILL = 'events/league/kill/team/multi/penta',
+  LOL_TEAM_ACE = 'events/league/kill/team/ace/',
+  LOL_ENEMY_ACE = 'events/league/kill/enemy/ace/',
+  LOL_BARON_KILLED = 'events/league/objective/baron/',
+  LOL_DRAGON_KILLED = 'events/league/objective/dragon/',
+  LOL_HERALD_KILLED = 'events/league/objective/herald/',
+  LOL_INHIB_KILLED = 'events/league/objective/inhib/kill/',
+  LOL_INHIB_RESPAWNED = 'events/league/objective/inhib/respawn/',
+  LOL_OBJECTIVE_STEAL = 'events/league/objective/steal/',
+  LOL_FIRST_TOWER = 'events/league/objective/turret/first/',
+  LOL_TURRET_KILLED = 'events/league/objective/turret/',
+  LOL_VOIDGRUB_KILLED = 'events/league/objective/voidgrub/'
+}
