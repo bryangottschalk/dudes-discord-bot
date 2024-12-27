@@ -12,6 +12,8 @@ import { ActivityType, Presence, VoiceBasedChannel } from 'discord.js';
 import discordTTS from 'discord-tts';
 import { LEAGUE_OF_LEGENDS, PATH_TO_CLIPS } from './constants';
 import { Event, RootGameObject } from 'league-of-legends-api/types/index';
+import fs from 'fs';
+import path from 'path';
 
 export enum PresenceState {
   IN_CHAMP_SELECT = 'In Champion Select',
@@ -72,7 +74,7 @@ export const stopPlayingClip = async (audioPlayer: AudioPlayer) => {
   await entersState(audioPlayer, AudioPlayerStatus.Idle, 5000);
 };
 
-export const annouceUnhandledUser = async (
+export const announceUnhandledUser = async (
   channel: VoiceBasedChannel,
   audioPlayer: AudioPlayer,
   username: string
@@ -118,13 +120,66 @@ export const setIntervalImmediately = (func: { (): Promise<void>; (): void }, in
   return setInterval(func, interval);
 };
 
-export const playRandomClipFromList = async (
-  clipOptions: string[],
+export const playRandomClipFromFolder = async (
+  clipsFolder: string,
   channel: VoiceBasedChannel,
   audioPlayer: AudioPlayer
 ) => {
-  const clip = clipOptions[Math.floor(Math.random() * clipOptions.length)];
-  return await playClip(`${PATH_TO_CLIPS}${clip}`, channel, audioPlayer);
+  try {
+    const dir = `${PATH_TO_CLIPS}${clipsFolder}`;
+
+    // Read the directory contents and grab the paths to the .mp3 and .wav files.
+    const clips = fs.readdirSync(dir).filter((fileOrDir) => {
+      const fullPath = path.join(dir, fileOrDir);
+      return (
+        fs.statSync(fullPath).isFile() && (fileOrDir.endsWith('.mp3') || fileOrDir.endsWith('.wav'))
+      );
+    });
+
+    // If no files are found, no clips can be played!
+    if (clips.length === 0) {
+      console.log('No clips found in ' + dir);
+      return;
+    }
+
+    // Pick a random clip and play it.
+    const clip = clips[Math.floor(Math.random() * clips.length)];
+    return await playClip(`${dir}/${clip}`, channel, audioPlayer);
+  } catch (error) {
+    // console.error('Error reading directory:', error); <-- this error is very extra, not sure if we wanna keep or not.
+    return null;
+  }
+};
+
+export const findClipRecursively = (directory: string, command: string): string | null => {
+  try {
+    const contents = fs.readdirSync(directory);
+
+    for (const fileOrDir of contents) {
+      const fullPath = path.join(directory, fileOrDir);
+
+      // Check if it's the target file. Return it if if is.
+      if (fs.statSync(fullPath).isFile() && fileOrDir.split('.')[0].toLowerCase() === command) {
+        return fullPath;
+      }
+
+      // If it's a directory, recurse into it.
+      if (fs.statSync(fullPath).isDirectory()) {
+        const result = findClipRecursively(fullPath, command);
+
+        // Return the file if found in the subdirectory.
+        if (result) {
+          return result;
+        }
+      }
+    }
+
+    // The file was not found if reach here. Return null to signify not found.
+    return null;
+  } catch (error) {
+    console.error('Error while searching for the file:', error);
+    return null;
+  }
 };
 
 export enum EnemyOrAlly {
