@@ -151,8 +151,9 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     // Grab the username of the user who joined
     const username = newState?.member?.user.tag as string;
     const usernameNoHash = username?.split('#')[0] ?? '';
+    const usernameNoSpecialChars = usernameNoHash.replace(/[^a-zA-Z0-9 ]/g, '');
     if (!oldState.streaming && newState.streaming) {
-      annouceUserIsStreaming(channel, audioPlayer, usernameNoHash);
+      annouceUserIsStreaming(channel, audioPlayer, usernameNoSpecialChars);
     }
     // The voiceStateUpdate callback is triggered for a variety of reasons, but we only care about some of them for intros.
     const DONT_INTRO = [
@@ -172,7 +173,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
       // Look for a folder for the user. If there is one, play a random clip from it.
       if (!botUsernames.includes(username)) {
         const success = await playRandomClipFromFolder(
-          `${EventFiles.DIS_USER_ENTER}${usernameNoHash}`,
+          `${EventFiles.DIS_USER_ENTER}${usernameNoSpecialChars}`,
           channel,
           audioPlayer
         );
