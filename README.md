@@ -8,9 +8,9 @@ Based on https://github.com/walworob/dpr-discobot
 
 ### Software requirements
 
-Make sure NodeJS and the Yarn package manager are installed on your machine. <br/> <br/>
+Make sure NodeJS and the NPM package manager are installed on your machine. <br/> <br/>
 https://nodejs.org/en/ <br/>
-https://classic.yarnpkg.com/lang/en/docs/install
+https://www.npmjs.com/
 
 ### Setup
 
@@ -18,8 +18,8 @@ Create a `.env` file and copy/paste the contents of `.env.sample` into it to get
 
 ### Starting the Application
 
-`yarn install` to install dependencies <br/>
-`yarn dev` to run the server
+`npm install` to install dependencies <br/>
+`npm start` to run the server
 
 ### Adding a clip to play when you join a voice channel
 
