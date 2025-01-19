@@ -10,7 +10,7 @@ import {
 } from '@discordjs/voice';
 import { ActivityType, Presence, VoiceBasedChannel } from 'discord.js';
 import discordTTS from 'discord-tts';
-import { LEAGUE_OF_LEGENDS, PATH_TO_CLIPS } from './constants';
+import { EventFiles, LEAGUE_OF_LEGENDS, PATH_TO_CLIPS } from './constants';
 import { Event, RootGameObject } from 'league-of-legends-api/types/index';
 import fs from 'fs';
 import path from 'path';
@@ -74,23 +74,9 @@ export const stopPlayingClip = async (audioPlayer: AudioPlayer) => {
   await entersState(audioPlayer, AudioPlayerStatus.Idle, 5000);
 };
 
-export const announceUnhandledUser = async (
-  channel: VoiceBasedChannel,
-  audioPlayer: AudioPlayer,
-  username: string
-) => {
-  const connection = await connectToChannel(channel);
-
-  connection?.subscribe(audioPlayer);
-
-  const stream = discordTTS.getVoiceStream(`Welcome ${username}. That's a big ass guy!`);
-
-  const audioResource = createAudioResource(stream, {
-    inputType: StreamType.Arbitrary,
-    inlineVolume: true
-  });
-  audioPlayer.play(audioResource);
-};
+// If no intro folder was found for a user, use the unknown folder
+export const announceUnhandledUser = async (channel: VoiceBasedChannel, audioPlayer: AudioPlayer) =>
+  await playRandomClipFromFolder(`${EventFiles.DIS_USER_ENTER}unknown`, channel, audioPlayer);
 
 export const annouceUserIsStreaming = async (
   channel: VoiceBasedChannel,
