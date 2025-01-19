@@ -10,7 +10,7 @@ import {
 import { AudioPlayerStatus, createAudioPlayer } from '@discordjs/voice';
 import {
   PresenceState,
-  // announceUnhandledUser,
+  announceUnhandledUser,
   annouceUserIsStreaming,
   connectToChannel,
   playClip,
@@ -178,11 +178,9 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
           audioPlayer
         );
 
-        // If no clip was found, announce the user using TTS.
         if (!success) {
           console.log('Unhandled user joined a voice channel. Announcing...');
-          // TODO: this broke, think something got screwed up here with dependency updates looking at error.
-          // await announceUnhandledUser(channel, audioPlayer, usernameNoHash);
+          await announceUnhandledUser(channel, audioPlayer);
         }
       }
     }
