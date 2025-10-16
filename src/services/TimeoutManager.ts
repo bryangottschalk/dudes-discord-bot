@@ -35,7 +35,7 @@ export class TimeoutManager {
     this.audioPlayer = audioPlayer;
     this.isActive = true;
     this.resetTimeout();
-    console.log('League timeout manager started - will play clip after 2 minutes of no League events');
+    console.log(`League timeout manager started - will play clip after ${TIMEOUTS.NO_EVENTS_MS / 1000 / 60} minutes of no League events`);
   }
 
   /**
@@ -62,7 +62,7 @@ export class TimeoutManager {
       await this.handleTimeout();
     }, TIMEOUTS.NO_EVENTS_MS);
 
-    console.log('League timeout reset - 2 minutes until next timeout clip');
+    console.log(`League timeout reset - ${TIMEOUTS.NO_EVENTS_MS / 1000 / 60} minutes until next timeout clip`);
   }
 
   /**
