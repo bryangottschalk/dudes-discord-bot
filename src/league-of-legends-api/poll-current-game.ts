@@ -10,7 +10,8 @@ import fs from 'fs';
 import { AudioPlayer } from '@discordjs/voice';
 import { Event, LoLClientEvent, RootEventsObject, RootGameObject } from './types/index';
 import https from 'https';
-import { EventFiles } from '../constants';
+import { EventFiles, TIMEOUTS } from '../constants';
+import { TimeoutManager } from '../services/TimeoutManager';
 
 const LOL_GAME_CLIENT_API = 'https://127.0.0.1:2999/liveclientdata';
 
@@ -45,6 +46,11 @@ export const getAllGameData = async () => {
 export const startPollingLoLGame = (channel: VoiceBasedChannel, audioPlayer: AudioPlayer) => {
   if (leagueOfLegendsPollTimer === null) {
     console.log('Polling game..');
+    
+    // Start the timeout manager when polling starts
+    const timeoutManager = TimeoutManager.getInstance();
+    timeoutManager.start(channel, audioPlayer);
+    
     leagueOfLegendsPollTimer = setIntervalImmediately(async () => {
       try {
         if (!cachedGame) {
@@ -57,6 +63,11 @@ export const startPollingLoLGame = (channel: VoiceBasedChannel, audioPlayer: Aud
         });
         if (currentEvents.length > cachedEvents.length) {
           const newEvent = currentEvents[currentEvents.length - 1];
+          
+          // Reset timeout when any League event occurs
+          const timeoutManager = TimeoutManager.getInstance();
+          timeoutManager.resetTimeout();
+          
           switch (newEvent?.EventName) {
             case LoLClientEvent.GAME_START: {
               console.log('game start!');
@@ -212,7 +223,7 @@ export const startPollingLoLGame = (channel: VoiceBasedChannel, audioPlayer: Aud
       } catch (err: unknown | AxiosError) {
         console.log(`Error occured when getting game event data: ${err}`);
       }
-    }, 400);
+    }, TIMEOUTS.LEAGUE_POLLING_INTERVAL_MS);
   }
 };
 
@@ -221,6 +232,11 @@ export const stopPollingLoLGame = () => {
   if (leagueOfLegendsPollTimer) {
     clearInterval(leagueOfLegendsPollTimer);
     console.log('Stopping polling..');
+    
+    // Stop the timeout manager when polling stops
+    const timeoutManager = TimeoutManager.getInstance();
+    timeoutManager.stop();
+    
     cachedEvents = [];
     cachedGame = null;
     leagueOfLegendsPollTimer = null;

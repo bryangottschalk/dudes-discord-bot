@@ -10,8 +10,9 @@ import {
 } from '@discordjs/voice';
 import { ActivityType, Presence, VoiceBasedChannel } from 'discord.js';
 import discordTTS from 'discord-tts';
-import { EventFiles, LEAGUE_OF_LEGENDS, PATH_TO_CLIPS } from './constants';
+import { EventFiles, LEAGUE_OF_LEGENDS, PATH_TO_CLIPS, TIMEOUTS } from './constants';
 import { Event, RootGameObject } from 'league-of-legends-api/types/index';
+import { TimeoutManager } from './services/TimeoutManager';
 import fs from 'fs';
 import path from 'path';
 
@@ -31,7 +32,7 @@ export const connectToChannel = async (channel: VoiceBasedChannel) => {
   });
   // Return when the voice connection is ready, or destroy it if it never gets to that state
   try {
-    await entersState(connection, VoiceConnectionStatus.Ready, 5000);
+    await entersState(connection, VoiceConnectionStatus.Ready, TIMEOUTS.CONNECTION_TIMEOUT_MS);
     return connection;
   } catch (error) {
     connection.destroy();
@@ -62,8 +63,12 @@ export const playClip = async (
 
   audioPlayer.play(resource);
 
+  // Reset timeout when a clip is played
+  const timeoutManager = TimeoutManager.getInstance();
+  timeoutManager.resetTimeout();
+
   // Return when the audio player signals it's playing
-  return entersState(audioPlayer, AudioPlayerStatus.Playing, 5000);
+  return entersState(audioPlayer, AudioPlayerStatus.Playing, TIMEOUTS.AUDIO_TIMEOUT_MS);
 };
 
 export const stopPlayingClip = async (audioPlayer: AudioPlayer) => {
@@ -71,7 +76,7 @@ export const stopPlayingClip = async (audioPlayer: AudioPlayer) => {
   audioPlayer.stop(true);
 
   // Return when the audio player signals it's idle
-  await entersState(audioPlayer, AudioPlayerStatus.Idle, 5000);
+  await entersState(audioPlayer, AudioPlayerStatus.Idle, TIMEOUTS.AUDIO_TIMEOUT_MS);
 };
 
 // If no intro folder was found for a user, use the unknown folder

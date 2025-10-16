@@ -35,5 +35,14 @@ export enum EventFiles {
   LOL_OBJECTIVE_STEAL = 'events/league/objective/steal/',
   LOL_FIRST_TOWER = 'events/league/objective/turret/first/',
   LOL_TURRET_KILLED = 'events/league/objective/turret/',
-  LOL_VOIDGRUB_KILLED = 'events/league/objective/voidgrub/'
+  LOL_VOIDGRUB_KILLED = 'events/league/objective/voidgrub/',
+  NO_EVENTS_TIMEOUT = 'events/league/timeout/no-events/'
 }
+
+// Timeout constants
+export const TIMEOUTS = {
+  NO_EVENTS_MS: 2 * 60 * 1000, // 2 minutes in milliseconds
+  CONNECTION_TIMEOUT_MS: 5000,
+  AUDIO_TIMEOUT_MS: 5000,
+  LEAGUE_POLLING_INTERVAL_MS: 400 // League of Legends API polling interval
+} as const;
