@@ -2,6 +2,7 @@ import {
   joinVoiceChannel,
   entersState,
   VoiceConnectionStatus,
+  VoiceConnection,
   AudioPlayer,
   AudioPlayerStatus,
   createAudioResource,
@@ -23,20 +24,43 @@ export enum PresenceState {
   IN_QUEUE = 'In Queue'
 }
 
+const waitForVoiceConnectionReady = async (connection: VoiceConnection) => {
+  if (connection.state.status === VoiceConnectionStatus.Ready) {
+    return connection;
+  }
+
+  await entersState(connection, VoiceConnectionStatus.Ready, TIMEOUTS.CONNECTION_TIMEOUT_MS);
+  return connection;
+};
+
 export const connectToChannel = async (channel: VoiceBasedChannel) => {
-  // Create the connection to the voice channel
+  const existingConnection = getVoiceConnection(channel.guild.id);
+
+  if (existingConnection) {
+    // Reuse the current connection when the bot is already in the target channel.
+    if (existingConnection.joinConfig.channelId === channel.id) {
+      try {
+        return await waitForVoiceConnectionReady(existingConnection);
+      } catch (error) {
+        existingConnection.destroy();
+        console.log('Error connecting to voice channel:', error);
+      }
+    } else {
+      existingConnection.destroy();
+    }
+  }
+
   const connection = joinVoiceChannel({
     channelId: channel.id,
     guildId: channel.guild.id,
     adapterCreator: channel.guild.voiceAdapterCreator
   });
-  // Return when the voice connection is ready, or destroy it if it never gets to that state
+
   try {
-    await entersState(connection, VoiceConnectionStatus.Ready, TIMEOUTS.CONNECTION_TIMEOUT_MS);
-    return connection;
+    return await waitForVoiceConnectionReady(connection);
   } catch (error) {
     connection.destroy();
-    console.log('Error:', error);
+    console.log('Error connecting to voice channel:', error);
   }
 };
 
