@@ -32,10 +32,25 @@ import {
   IS_LOL_ANNOUNCER_ENABLED,
   PATH_TO_CLIPS,
   GUILD_ID,
-  EventFiles
+  EventFiles,
+  getConfigurationErrors,
+  getConfigurationWarnings
 } from './constants';
 
 const app = express();
+const configurationErrors = getConfigurationErrors();
+const configurationWarnings = getConfigurationWarnings();
+
+if (configurationWarnings.length > 0) {
+  console.warn('Configuration warnings:');
+  configurationWarnings.forEach((warning) => console.warn(`- ${warning}`));
+}
+
+if (configurationErrors.length > 0) {
+  console.error('Configuration errors:');
+  configurationErrors.forEach((error) => console.error(`- ${error}`));
+  process.exit(1);
+}
 
 // Create the bot
 const client = new Client({
@@ -62,30 +77,34 @@ audioPlayer.on('error', (error) => {
 });
 
 // Event triggered when the client becomes ready to start working
-client.once('ready', async (client) => {
-  // Get the guild this bot is in
-  const guild = await client.guilds.fetch(GUILD_ID);
-  // If the bot starts in a VoiceChannel, find out which channel it is
-  guild.channels.cache.forEach((curChannel: GuildBasedChannel) => {
-    if (curChannel.isVoiceBased() && curChannel.members.has(client.user.id)) {
-      // Set the channel this bot is in
-      channel = curChannel;
-      // Reconnect to the channel
-      connectToChannel(channel);
-      // If a member in this channel is in the middle of a LoL game and the announcer is enabled, start polling
-      channel.members.forEach((member: GuildMember) => {
-        if (
-          member.presence &&
-          presenceIndicatesPlayingLeagueOfLegends(member.presence) &&
-          member.presence.activities[0].state === PresenceState.IN_GAME &&
-          IS_LOL_ANNOUNCER_ENABLED
-        ) {
-          startPollingLoLGame(channel as VoiceBasedChannel, audioPlayer);
-          return;
-        }
-      });
-    }
-  });
+client.once('ready', async (readyClient) => {
+  try {
+    // Get the guild this bot is in
+    const guild = await readyClient.guilds.fetch(GUILD_ID);
+    // If the bot starts in a VoiceChannel, find out which channel it is
+    guild.channels.cache.forEach((curChannel: GuildBasedChannel) => {
+      if (curChannel.isVoiceBased() && curChannel.members.has(readyClient.user.id)) {
+        // Set the channel this bot is in
+        channel = curChannel;
+        // Reconnect to the channel
+        connectToChannel(channel);
+        // If a member in this channel is in the middle of a LoL game and the announcer is enabled, start polling
+        channel.members.forEach((member: GuildMember) => {
+          if (
+            member.presence &&
+            presenceIndicatesPlayingLeagueOfLegends(member.presence) &&
+            member.presence.activities[0].state === PresenceState.IN_GAME &&
+            IS_LOL_ANNOUNCER_ENABLED
+          ) {
+            startPollingLoLGame(channel as VoiceBasedChannel, audioPlayer);
+            return;
+          }
+        });
+      }
+    });
+  } catch (error) {
+    console.error('Failed to finish Discord startup. Check GUILD_ID and bot permissions.', error);
+  }
 });
 
 // Event triggered when a message is sent in a text channel
@@ -225,11 +244,10 @@ client.on('presenceUpdate', async (_, newPresence) => {
   }
 });
 
-try {
-  client.login(DISCORD_BOT_TOKEN);
-} catch (err) {
-  console.log(`Error logging in with Discord token: ${err}`);
-}
+void client.login(DISCORD_BOT_TOKEN).catch((error) => {
+  console.error('Error logging in with Discord token. Check DISCORD_BOT_TOKEN in .env.', error);
+  process.exit(1);
+});
 
 app.get('/', (_: Request, res: Response): void => {
   res.send(`Listening for Discord events on the server...`);

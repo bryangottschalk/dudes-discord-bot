@@ -1,10 +1,47 @@
+const readEnv = (key: string): string => (process.env[key] || '').trim();
+
+const parseBooleanEnv = (value: string): boolean =>
+  ['1', 'true', 'yes', 'on'].includes(value.toLowerCase());
+
+const isPlaceholderValue = (value: string, placeholder: string): boolean =>
+  value === '' || value === placeholder;
+
 // Environment variables from the .env file
 export const PORT = process.env.PORT || 8081;
-export const DISCORD_BOT_TOKEN: string = process.env.DISCORD_BOT_TOKEN || '';
-export const IS_LOL_ANNOUNCER_ENABLED: boolean =
-  Boolean(process.env.LEAGUE_OF_LEGENDS_ANNOUNCER_ENABLED) ?? false;
-export const PATH_TO_CLIPS: string = process.env.PATH_TO_CLIPS || '';
-export const GUILD_ID: string = process.env.GUILD_ID || '';
+export const DISCORD_BOT_TOKEN: string = readEnv('DISCORD_BOT_TOKEN');
+export const IS_LOL_ANNOUNCER_ENABLED: boolean = parseBooleanEnv(
+  readEnv('LEAGUE_OF_LEGENDS_ANNOUNCER_ENABLED')
+);
+export const PATH_TO_CLIPS: string = readEnv('PATH_TO_CLIPS');
+export const GUILD_ID: string = readEnv('GUILD_ID');
+
+export const getConfigurationErrors = (): string[] => {
+  const errors: string[] = [];
+
+  if (isPlaceholderValue(DISCORD_BOT_TOKEN, 'replace-with-your-discord-bot-token')) {
+    errors.push(
+      'DISCORD_BOT_TOKEN is missing. Copy .env.sample to .env and set your real Discord bot token.'
+    );
+  }
+
+  if (isPlaceholderValue(GUILD_ID, 'replace-with-your-discord-guild-id')) {
+    errors.push('GUILD_ID is missing. Set it to the Discord server ID your bot should join.');
+  }
+
+  return errors;
+};
+
+export const getConfigurationWarnings = (): string[] => {
+  const warnings: string[] = [];
+
+  if (isPlaceholderValue(PATH_TO_CLIPS, '/absolute/path/to/your/clips')) {
+    warnings.push(
+      'PATH_TO_CLIPS is still using the sample value. Clip playback will not work until you point it to your audio folder.'
+    );
+  }
+
+  return warnings;
+};
 
 // Simple constant strings for comparison logic
 export const LEAGUE_OF_LEGENDS = 'League of Legends';

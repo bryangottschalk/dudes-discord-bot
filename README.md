@@ -8,13 +8,13 @@ Based on https://github.com/walworob/dpr-discobot
 
 ### Software requirements
 
-Make sure NodeJS and the NPM package manager are installed on your machine. <br/> <br/>
+Make sure Node.js 20 or 22 LTS and npm are installed on your machine. <br/> <br/>
 https://nodejs.org/en/ <br/>
 https://www.npmjs.com/
 
 ### Setup
 
-Create a `.env` file and copy/paste the contents of `.env.sample` into it to get started. `DISCORD_BOT_TOKEN` is required from the Bot section of https://discord.com/developers/applications.
+Copy `.env.sample` to `.env`, then replace the placeholder values before starting the bot. `DISCORD_BOT_TOKEN` comes from the Bot section of https://discord.com/developers/applications.
 
 ### Starting the Application
 
