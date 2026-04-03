@@ -9,10 +9,10 @@ import {
   StreamType
 } from '@discordjs/voice';
 import { ActivityType, Presence, VoiceBasedChannel } from 'discord.js';
-import discordTTS from 'discord-tts';
 import { EventFiles, LEAGUE_OF_LEGENDS, PATH_TO_CLIPS, TIMEOUTS } from './constants';
 import { Event, RootGameObject } from 'league-of-legends-api/types/index';
 import { TimeoutManager } from './services/TimeoutManager';
+import { getTextToSpeechStream } from './services/textToSpeech';
 import fs from 'fs';
 import path from 'path';
 
@@ -92,7 +92,7 @@ export const annouceUserIsStreaming = async (
 
   connection?.subscribe(audioPlayer);
 
-  const stream = discordTTS.getVoiceStream(`${username} is streaming!`);
+  const stream = await getTextToSpeechStream(`${username} is streaming!`);
 
   const audioResource = createAudioResource(stream, {
     inputType: StreamType.Arbitrary,
